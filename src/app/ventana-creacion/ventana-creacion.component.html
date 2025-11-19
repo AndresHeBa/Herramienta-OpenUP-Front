@@ -1,0 +1,133 @@
+<header class="header">
+    <h1>Gestión de Proyectos</h1>
+    <nav>
+        <button class="btn-nuevo" (click)="toggleFormulario()">Nuevo Proyecto</button>
+    </nav>
+</header>
+
+<!-- Formulario para nuevo proyecto -->
+<section class="form-section" [class.hidden]="!mostrarFormulario">
+    <h2>{{ editandoId ? 'Editar Proyecto' : 'Nuevo Proyecto' }}</h2>
+    <form (ngSubmit)="guardarProyecto()">
+        <label>Nombre:
+            <input type="text" [(ngModel)]="formData.nombre" name="nombre" required />
+        </label>
+        <label>Identificador:
+            <input type="text" [(ngModel)]="formData.identificador" name="identificador" required />
+        </label>
+        <label>Fecha de inicio:
+            <input type="date" [(ngModel)]="formData.fechaInicio" name="fechaInicio" required />
+        </label>
+        <label>Responsable:
+            <input type="text" [(ngModel)]="formData.responsable" name="responsable" />
+        </label>
+        <label>Descripción:
+            <textarea [(ngModel)]="formData.descripcion" name="descripcion"></textarea>
+        </label>
+        <label>Tags:
+            <input type="text" [(ngModel)]="formData.tags" name="tags" placeholder="Ej: backend, urgente" />
+        </label>
+        <div class="botones-grupo">
+            <button type="submit">{{ editandoId ? 'Actualizar Proyecto' : 'Crear Proyecto' }}</button>
+            <button type="button" (click)="toggleFormulario()" class="btn-cancelar">Cancelar</button>
+        </div>
+    </form>
+</section>
+
+<!-- Tabla de proyectos -->
+<section class="tabla-container">
+    <h2>Proyectos</h2>
+    <div *ngIf="proyectos.length === 0" class="sin-proyectos">
+        <p>No hay proyectos aún. ¡Crea uno nuevo!</p>
+    </div>
+    <table *ngIf="proyectos.length > 0">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Identificador</th>
+                <th>Fecha Inicio</th>
+                <th>Estado</th>
+                <th>Responsable</th>
+                <th>Descripción</th>
+                <th>Tags</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let proyecto of proyectos">
+                <td>{{ proyecto.nombre }}</td>
+                <td>{{ proyecto.identificador }}</td>
+                <td>{{ proyecto.fechaInicio }}</td>
+                <td><span class="estado-badge">{{ proyecto.estado }}</span></td>
+                <td>{{ proyecto.responsable || '-' }}</td>
+                <td>{{ proyecto.descripcion || '-' }}</td>
+                <td>{{ proyecto.tags || '-' }}</td>
+                <td class="acciones">
+                    <button class="btn-accion btn-ver" (click)="verDetalles(proyecto.id)" title="Ver detalles">Ver</button>
+                    <button class="btn-accion btn-editar" (click)="editarProyecto(proyecto.id)" title="Editar proyecto">Editar</button>
+                    <button class="btn-accion btn-eliminar" (click)="eliminarProyecto(proyecto.id)" title="Eliminar proyecto">Eliminar</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Modal de detalles del proyecto -->
+<div class="modal" [class.visible]="mostrarDetalle" *ngIf="detalleProyecto">
+    <div class="modal-contenido">
+        <button class="btn-cerrar" (click)="cerrarDetalle()">×</button>
+        <h2>{{ detalleProyecto.nombre }}</h2>
+        
+        <div class="detalle-seccion">
+            <h3>Información General</h3>
+            <div class="detalle-grid">
+                <div class="detalle-item">
+                    <strong>Identificador:</strong>
+                    <p>{{ detalleProyecto.identificador }}</p>
+                </div>
+                <div class="detalle-item">
+                    <strong>Estado:</strong>
+                    <p>{{ detalleProyecto.estado }}</p>
+                </div>
+                <div class="detalle-item">
+                    <strong>Fecha de Inicio:</strong>
+                    <p>{{ detalleProyecto.fechaInicio }}</p>
+                </div>
+                <div class="detalle-item">
+                    <strong>Responsable:</strong>
+                    <p>{{ detalleProyecto.responsable || 'No asignado' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="detalle-seccion">
+            <strong>Descripción:</strong>
+            <p>{{ detalleProyecto.descripcion || 'Sin descripción' }}</p>
+        </div>
+
+        <div class="detalle-seccion">
+            <strong>Tags:</strong>
+            <div class="tags-list">
+                <span *ngFor="let tag of (detalleProyecto.tags ? detalleProyecto.tags.split(',') : [])" class="tag">
+                    {{ tag.trim() }}
+                </span>
+            </div>
+        </div>
+
+        <div class="detalle-seccion">
+            <h3>Fases del Proyecto</h3>
+            <div class="fases-list">
+                <div *ngFor="let fase of detalleProyecto.fases" class="fase-item">
+                    <div class="fase-nombre">{{ fase.nombre }}</div>
+                    <div class="fase-estado">{{ fase.estado }}</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-cerrar-modal" (click)="cerrarDetalle()">Cerrar</button>
+    </div>
+</div>
+
+<footer class="footer">
+    <p>© 2025 Gestión de Proyectos - Angular</p>
+</footer>

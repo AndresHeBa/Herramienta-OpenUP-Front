@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { VentanaCreacionComponent } from "./ventana-creacion/ventana-creacion.component";
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [VentanaCreacionComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
