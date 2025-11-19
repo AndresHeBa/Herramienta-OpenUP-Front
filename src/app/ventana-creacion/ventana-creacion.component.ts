@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MainService } from '../service/main.service';
 
 interface Fase {
   nombre: string;
@@ -15,6 +16,7 @@ interface Proyecto {
   responsable: string;
   descripcion: string;
   tags: string;
+  activo: boolean;
   estado: string;
   fases: Fase[];
 }
@@ -32,6 +34,8 @@ export class VentanaCreacionComponent implements OnInit {
   editandoId: string | null = null;
   detalleProyecto: Proyecto | null = null;
   mostrarDetalle = false;
+
+  constructor(private mainService: MainService) {}
 
   formData = {
     nombre: '',
@@ -79,9 +83,29 @@ export class VentanaCreacionComponent implements OnInit {
       descripcion: this.formData.descripcion,
       tags: this.formData.tags,
       estado: 'Creado',
+      activo: true,
       fases: JSON.parse(JSON.stringify(this.fasesPredeterminadas))
     };
 
+    //mandar a la API
+    this.mainService.postproyect(
+      nuevoProyecto.nombre,
+      nuevoProyecto.identificador,
+      nuevoProyecto.fechaInicio,
+      nuevoProyecto.descripcion,
+      nuevoProyecto.responsable,
+      nuevoProyecto.tags.split(',').map(tag => tag.trim()),
+      nuevoProyecto.activo
+    ).subscribe({
+      next: (response) => {
+        console.log('Proyecto creado en la API:', response);
+      },
+      error: (error) => {
+        console.error('Error al crear el proyecto en la API:', error);
+      }
+    });
+
+    console.log('Creando proyecto:', nuevoProyecto);
     this.proyectos.push(nuevoProyecto);
     this.guardarProyectos();
     this.limpiarFormulario();
