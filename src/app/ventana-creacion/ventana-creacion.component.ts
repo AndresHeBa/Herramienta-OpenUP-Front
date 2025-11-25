@@ -168,6 +168,26 @@ export class VentanaCreacionComponent implements OnInit {
     }
   }
 
+  archivarProyecto(id: string) {
+    if (confirm('¿Estás seguro de que deseas archivar este proyecto?')) {
+      this.mainService.deactivateProject(id).subscribe({
+        next: (response) => {
+          console.log('Proyecto archivado en la API:', response);
+          const proyecto = this.proyectos.find(p => p.id === id);
+          if (proyecto) {
+            proyecto.activo = false;
+            proyecto.estado = 'Archivado';
+            this.guardarProyectos();
+          }
+        },
+        error: (error) => {
+          console.error('Error al archivar el proyecto en la API:', error);
+          alert('Error al archivar el proyecto');
+        }
+      });
+    }
+  }
+
   private guardarProyectos() {
     localStorage.setItem('proyectos', JSON.stringify(this.proyectos));
   }

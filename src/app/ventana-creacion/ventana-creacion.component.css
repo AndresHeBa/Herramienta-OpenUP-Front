@@ -135,14 +135,21 @@
 }
 
 .btn-cancelar {
-    background: #6b7280 !important;
+    background: #ef4444 !important;
     padding: 10px 20px !important;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
 
 .btn-cancelar:hover {
-    background: #4b5563 !important;
+    background: #dc2626 !important;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
 /* Tabla */
@@ -259,6 +266,15 @@ tbody td {
 .btn-eliminar:hover {
     background: #dc2626;
     transform: translateY(-2px);
+}
+
+.btn-archivar {
+  background: #10b981;
+}
+
+.btn-archivar:hover {
+  background: #059669;
+  transform: translateY(-2px);
 }
 
 /* Modal de detalles */

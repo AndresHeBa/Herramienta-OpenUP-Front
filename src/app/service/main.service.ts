@@ -48,5 +48,8 @@ export class MainService {
     return this.http.post<any>(`${API_URL}/postProject`, body, httpOptions);
   }
 
+  deactivateProject(strProjectId: string) {
+  return this.http.put<any>(`${API_URL}/deactivateProject/${strProjectId}`, {}, httpOptions);
+  }
 }
 
