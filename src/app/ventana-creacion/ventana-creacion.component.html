@@ -119,8 +119,56 @@
             <h3>Fases del Proyecto</h3>
             <div class="fases-list">
                 <div *ngFor="let fase of detalleProyecto.fases" class="fase-item">
-                    <div class="fase-nombre">{{ fase.nombre }}</div>
-                    <div class="fase-estado">{{ fase.estado }}</div>
+                    <div class="fase-header">
+                        <div class="fase-nombre">{{ fase.nombre }}</div>
+                        <div class="fase-estado">{{ fase.estado }}</div>
+                    </div>
+
+                    <!-- Lógica específica para la Fase de Incepción -->
+                    <div *ngIf="fase.nombre === 'Incepción'" class="plan-seccion">
+
+                        <!-- 1. Mostrar el plan si ya existe -->
+                        <div *ngIf="fase.plan" class="plan-detalle">
+                            <h4>Plan del Proyecto (Versión {{ fase.plan.version }})</h4>
+                            <p><strong>Fecha:</strong> {{ fase.plan.fecha | date: 'dd/MM/yyyy' }}</p>
+                            <p><strong>Objetivos:</strong> {{ fase.plan.objetivos }}</p>
+                            <p><strong>Alcance:</strong> {{ fase.plan.alcance }}</p>
+                            <p><strong>Cronograma Inicial:</strong> {{ fase.plan.cronogramaInicial }}</p>
+                            <p><strong>Responsabilidades:</strong> {{ fase.plan.responsabilidades }}</p>
+                            <p><strong>Observaciones:</strong> {{ fase.plan.observaciones }}</p>
+                        </div>
+
+                        <!-- 2. Mostrar botón para crear plan si no existe Y no se está mostrando el form -->
+                        <button *ngIf="!fase.plan && !mostrandoFormularioPlan" (click)="iniciarCreacionPlan(fase)" class="btn-crear-plan">
+                            + Crear Plan de Proyecto Inicial
+                        </button>
+
+                        <!-- 3. Formulario para crear el plan -->
+                        <div *ngIf="mostrandoFormularioPlan && faseActualParaPlan === fase" class="plan-form-container">
+                            <h4>Crear Plan de Proyecto Inicial (Versión 1)</h4>
+                            <form [formGroup]="projectPlanForm" (ngSubmit)="guardarPlan()">
+                                <label>Objetivos:
+                                    <input formControlName="objetivos" placeholder="Objetivos principales del proyecto">
+                                </label>
+                                <label>Alcance:
+                                    <input formControlName="alcance" placeholder="Límites y entregables del proyecto">
+                                </label>
+                                <label>Cronograma Inicial:
+                                    <input formControlName="cronogramaInicial" placeholder="Hitos y fechas clave">
+                                </label>
+                                <label>Responsabilidades:
+                                    <input formControlName="responsabilidades" placeholder="Roles y responsabilidades del equipo">
+                                </label>
+                                <label>Observaciones:
+                                    <textarea formControlName="observaciones" placeholder="Notas adicionales para la versión 1"></textarea>
+                                </label>
+                                <div class="botones-grupo">
+                                    <button type="submit" [disabled]="projectPlanForm.invalid">Guardar Plan</button>
+                                    <button type="button" (click)="cancelarCreacionPlan()" class="btn-cancelar">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
