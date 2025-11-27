@@ -1,1 +1,387 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* General Body Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Header Styles */
+.header {
+    background-color: #007bff;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.header nav .btn-nuevo {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.header nav .btn-nuevo:hover {
+    background-color: #218838;
+}
+
+/* Section Styling */
+.form-section, .tabla-container {
+    background-color: white;
+    margin: 1.5rem auto;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 1000px;
+}
+
+.form-section.hidden {
+    display: none;
+}
+
+/* Form Styles */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+form label {
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+form input[type="text"],
+form input[type="date"],
+form input[type="number"],
+form textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Ensures padding doesn't increase width */
+}
+
+form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.botones-grupo {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.botones-grupo button {
+    padding: 0.8rem 1.8rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.botones-grupo button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+}
+
+.botones-grupo button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+.botones-grupo .btn-cancelar {
+    background-color: #6c757d;
+    color: white;
+}
+
+.botones-grupo .btn-cancelar:hover {
+    background-color: #5a6268;
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+}
+
+table th, table td {
+    border: 1px solid #dee2e6;
+    padding: 0.75rem;
+    text-align: left;
+}
+
+table th {
+    background-color: #e9ecef;
+    font-weight: bold;
+    color: #495057;
+}
+
+table tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.estado-badge {
+    display: inline-block;
+    padding: 0.35em 0.65em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+    color: #fff;
+    background-color: #007bff; /* Example color */
+}
+
+.acciones button {
+    margin-right: 0.5rem;
+    padding: 0.5rem 0.8rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+.acciones .btn-ver { background-color: #007bff; color: white; }
+.acciones .btn-ver:hover { background-color: #0056b3; }
+.acciones .btn-editar { background-color: #ffc107; color: #333; }
+.acciones .btn-editar:hover { background-color: #e0a800; }
+.acciones .btn-eliminar { background-color: #dc3545; color: white; }
+.acciones .btn-eliminar:hover { background-color: #c82333; }
+.acciones .btn-archivar { background-color: #17a2b8; color: white; }
+.acciones .btn-archivar:hover { background-color: #138496; }
+
+/* Modal Styles (General) */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050; /* Higher than other content */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-contenido {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.modal.visible .modal-contenido {
+    transform: translateY(0);
+}
+
+.btn-cerrar {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+}
+
+.btn-cerrar:hover {
+    color: #333;
+}
+
+/* Detail Section Styles */
+.detalle-seccion {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+}
+
+.detalle-seccion h3 {
+    color: #007bff;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5rem;
+}
+
+.detalle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.detalle-item strong {
+    display: block;
+    color: #495057;
+    margin-bottom: 0.2rem;
+}
+
+.detalle-item p {
+    margin: 0;
+}
+
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.tag {
+    background-color: #007bff;
+    color: white;
+    padding: 0.3rem 0.7rem;
+    border-radius: 15px;
+    font-size: 0.85rem;
+}
+
+/* Phases List */
+.fases-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.fase-item {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 1rem;
+}
+
+.fase-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed #e9ecef;
+}
+
+.fase-nombre {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.fase-estado {
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: white;
+    background-color: #6c757d; /* Default for Pendiente */
+}
+
+.fase-estado.completado {
+    background-color: #28a745;
+}
+
+.plan-seccion {
+    margin-top: 1rem;
+    background-color: #e9f7ef; /* Light green for plan */
+    border: 1px solid #28a745;
+    border-radius: 6px;
+    padding: 1rem;
+}
+
+.plan-seccion h4 {
+    color: #28a745;
+    margin-top: 0;
+    margin-bottom: 0.8rem;
+}
+
+.btn-crear-plan {
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-top: 1rem;
+}
+
+.btn-crear-plan:hover {
+    background-color: #138496;
+}
+
+.plan-form-container {
+    margin-top: 1rem;
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.plan-form-container label {
+    margin-bottom: 0.5rem;
+}
+
+/* Footer Styles */
+.footer {
+    text-align: center;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    background-color: #343a40;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.sin-proyectos, .sin-iteraciones, .no-history {
+    background-color: #e9ecef;
+    padding: 1rem;
+    border-radius: 5px;
+    text-align: center;
+    color: #6c757d;
+}
+
+.loading {
+    text-align: center;
+    padding: 1rem;
+    color: #007bff;
+}
+
+/* Specific styles for iteration-modal and history-modal (if needed, otherwise general modal styles apply) */
+/* (Currently, general modal styles are sufficient due to class-based styling) */

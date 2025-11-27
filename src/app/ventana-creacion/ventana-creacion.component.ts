@@ -3,6 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MainService } from '../service/main.service';
 import { ProjectPlan } from '../models/project-plan.model';
+import { ProgressComponent } from '../progress/progress.component';
+import { IterationModalComponent } from '../iteration-modal/iteration-modal.component';
+import { HistoryModalComponent } from '../history-modal/history-modal.component';
+import { Iteration } from '../models/iteration.model';
 
 interface Fase {
   nombre: string;
@@ -26,7 +30,7 @@ interface Proyecto {
 @Component({
   selector: 'app-ventana-creacion',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ProgressComponent, IterationModalComponent, HistoryModalComponent],
   templateUrl: './ventana-creacion.component.html',
   styleUrl: './ventana-creacion.component.css'
 })
@@ -40,6 +44,11 @@ export class VentanaCreacionComponent implements OnInit {
   projectPlanForm!: FormGroup;
   mostrandoFormularioPlan = false;
   faseActualParaPlan: Fase | null = null;
+
+  mostrarIterationModal = false;
+  selectedIteration: Iteration | null = null;
+
+  mostrarHistoryModal = false;
 
   constructor(private mainService: MainService, private fb: FormBuilder) {}
 
@@ -157,7 +166,7 @@ export class VentanaCreacionComponent implements OnInit {
         identificador: proyecto.identificador,
         fechaInicio: proyecto.fechaInicio,
         responsable: proyecto.responsable,
-descripcion: proyecto.descripcion,
+        descripcion: proyecto.descripcion,
         tags: proyecto.tags
       };
       this.editandoId = id;
@@ -229,6 +238,29 @@ descripcion: proyecto.descripcion,
     this.faseActualParaPlan.plan = nuevoPlan;
     this.guardarProyectos();
     this.cancelarCreacionPlan();
+  }
+
+  openIterationModal(iteration: Iteration | null) {
+    this.selectedIteration = iteration;
+    this.mostrarIterationModal = true;
+  }
+
+  closeIterationModal(refresh: boolean) {
+    this.mostrarIterationModal = false;
+    this.selectedIteration = null;
+    if (refresh) {
+      // Logic to refresh progress data in the progress component
+      // This will be handled by re-rendering the progress component.
+      // For now, just close the modal.
+    }
+  }
+
+  openHistoryModal() {
+    this.mostrarHistoryModal = true;
+  }
+
+  closeHistoryModal() {
+    this.mostrarHistoryModal = false;
   }
 
   private guardarProyectos() {

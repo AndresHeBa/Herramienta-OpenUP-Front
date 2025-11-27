@@ -115,6 +115,16 @@
             </div>
         </div>
 
+        <!-- Progress Component -->
+        <div class="detalle-seccion">
+            <app-progress 
+                [projectId]="detalleProyecto.id"
+                (newIteration)="openIterationModal(null)"
+                (editIteration)="openIterationModal($event)"
+                (viewHistory)="openHistoryModal()"
+            ></app-progress>
+        </div>
+
         <div class="detalle-seccion">
             <h3>Fases del Proyecto</h3>
             <div class="fases-list">
@@ -176,6 +186,21 @@
         <button class="btn-cerrar-modal" (click)="cerrarDetalle()">Cerrar</button>
     </div>
 </div>
+
+<!-- Iteration Modal -->
+<app-iteration-modal 
+    *ngIf="mostrarIterationModal && detalleProyecto"
+    [projectId]="detalleProyecto.id"
+    [iteration]="selectedIteration"
+    (closeModal)="closeIterationModal($event)"
+></app-iteration-modal>
+
+<!-- History Modal -->
+<app-history-modal
+    *ngIf="mostrarHistoryModal && detalleProyecto"
+    [projectId]="detalleProyecto.id"
+    (closeModal)="closeHistoryModal()"
+></app-history-modal>
 
 <footer class="footer">
     <p>© 2025 Gestión de Proyectos - Angular</p>

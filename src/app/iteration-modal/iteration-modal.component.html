@@ -1,0 +1,47 @@
+<div class="modal">
+  <div class="modal-contenido">
+    <h2>{{ isEditMode ? 'Editar Iteración' : 'Nueva Iteración' }}</h2>
+    
+    <form [formGroup]="iterationForm" (ngSubmit)="saveIteration()">
+      <div class="form-grid">
+        <label>Iteración:
+          <input formControlName="iteration" required>
+        </label>
+        <label>Fecha de inicio:
+          <input type="date" formControlName="startDate" required>
+        </label>
+        <label>Fecha de fin:
+          <input type="date" formControlName="endDate" required>
+        </label>
+        <label>% Completado:
+          <input type="number" formControlName="completionPercent">
+        </label>
+      </div>
+
+      <div class="tasks-section">
+        <h3>Tareas</h3>
+        <div formArrayName="tasks">
+          <div *ngFor="let task of tasks.controls; let i=index" [formGroupName]="i" class="task-item">
+            <input type="checkbox" formControlName="completed">
+            <input type="text" formControlName="name" placeholder="Nombre de la tarea">
+            <button type="button" class="btn-eliminar-task" (click)="removeTask(i)">×</button>
+          </div>
+        </div>
+        <button type="button" class="btn-nueva-task" (click)="addTask()">+ Añadir Tarea</button>
+      </div>
+      
+      <label>Bloqueos:
+        <textarea formControlName="blockers"></textarea>
+      </label>
+      
+      <label>Observaciones:
+        <textarea formControlName="observations"></textarea>
+      </label>
+      
+      <div class="botones-grupo">
+        <button type="submit" [disabled]="iterationForm.invalid">{{ isEditMode ? 'Actualizar' : 'Crear' }}</button>
+        <button type="button" class="btn-cancelar" (click)="cancel()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
