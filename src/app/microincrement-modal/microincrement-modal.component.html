@@ -1,0 +1,12 @@
+<div class="modal">
+  <div class="modal-contenido">
+    <div class="modal-header">
+      <h2>Microincrementos del Proyecto</h2>
+      <button class="close-button" (click)="onCloseModal(false)">&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- Embed the MicroincrementListComponent here -->
+      <app-microincrement-list [projectId]="projectId"></app-microincrement-list>
+    </div>
+  </div>
+</div>

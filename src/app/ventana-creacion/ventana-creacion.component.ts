@@ -6,6 +6,7 @@ import { ProjectPlan } from '../models/project-plan.model';
 import { ProgressComponent } from '../progress/progress.component';
 import { IterationModalComponent } from '../iteration-modal/iteration-modal.component';
 import { HistoryModalComponent } from '../history-modal/history-modal.component';
+import { MicroincrementModalComponent } from '../microincrement-modal/microincrement-modal.component'; // Import the new modal
 import { Iteration } from '../models/iteration.model';
 
 interface Fase {
@@ -30,7 +31,7 @@ interface Proyecto {
 @Component({
   selector: 'app-ventana-creacion',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ProgressComponent, IterationModalComponent, HistoryModalComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ProgressComponent, IterationModalComponent, HistoryModalComponent, MicroincrementModalComponent],
   templateUrl: './ventana-creacion.component.html',
   styleUrl: './ventana-creacion.component.css'
 })
@@ -49,6 +50,9 @@ export class VentanaCreacionComponent implements OnInit {
   selectedIteration: Iteration | null = null;
 
   mostrarHistoryModal = false;
+
+  mostrarMicroincrementModal = false; // New flag for Microincrement modal
+  selectedProjectIdForMicroincrement: string | null = null; // To pass projectId to the modal
 
   constructor(private mainService: MainService, private fb: FormBuilder) {}
 
@@ -261,6 +265,19 @@ export class VentanaCreacionComponent implements OnInit {
 
   closeHistoryModal() {
     this.mostrarHistoryModal = false;
+  }
+
+  openMicroincrementModal(projectId: string) {
+    this.selectedProjectIdForMicroincrement = projectId;
+    this.mostrarMicroincrementModal = true;
+  }
+
+  closeMicroincrementModal(refresh: boolean) {
+    this.mostrarMicroincrementModal = false;
+    this.selectedProjectIdForMicroincrement = null;
+    if (refresh) {
+      // Potentially refresh data here if needed
+    }
   }
 
   private guardarProyectos() {
