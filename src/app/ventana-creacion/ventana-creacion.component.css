@@ -472,3 +472,91 @@ tbody td {
         width: 100%;
     }
 }
+
+/* --- Estilos para la Sección del Plan de Proyecto --- */
+.fase-item {
+  padding: 15px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+  display: flex; /* Cambiado a flex */
+  flex-direction: column; /* Apilar hijos verticalmente */
+  gap: 15px; /* Espacio entre el header y el contenido del plan */
+}
+.fase-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.plan-seccion {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e5e7eb;
+}
+.btn-crear-plan {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+.btn-crear-plan:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+.plan-detalle {
+  background: #eef2ff;
+  padding: 15px;
+  border-radius: 6px;
+  border-left: 3px solid #6366f1;
+}
+.plan-detalle h4 {
+  margin-bottom: 10px;
+  color: #4338ca;
+}
+.plan-detalle p {
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.plan-detalle p strong {
+  color: #4f46e5;
+}
+.plan-form-container {
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin-top: 10px;
+  border: 1px solid #e5e7eb;
+}
+.plan-form-container h4 {
+  margin-bottom: 15px;
+}
+.plan-form-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.plan-form-container label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #374151;
+}
+.plan-form-container input,
+.plan-form-container textarea {
+  margin-top: 5px;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #d1d5db;
+  font-size: 0.9rem;
+}
+.plan-form-container textarea {
+  min-height: 60px;
+  resize: vertical;
+}

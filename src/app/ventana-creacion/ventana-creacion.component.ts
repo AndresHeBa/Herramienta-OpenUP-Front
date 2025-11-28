@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MainService } from '../service/main.service';
+import { ProjectPlan } from '../models/project-plan.model';
 
 interface Fase {
   nombre: string;
   estado: string;
+  plan?: ProjectPlan;
 }
 
 interface Proyecto {
@@ -24,7 +26,7 @@ interface Proyecto {
 @Component({
   selector: 'app-ventana-creacion',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './ventana-creacion.component.html',
   styleUrl: './ventana-creacion.component.css'
 })
@@ -35,7 +37,11 @@ export class VentanaCreacionComponent implements OnInit {
   detalleProyecto: Proyecto | null = null;
   mostrarDetalle = false;
 
-  constructor(private mainService: MainService) {}
+  projectPlanForm!: FormGroup;
+  mostrandoFormularioPlan = false;
+  faseActualParaPlan: Fase | null = null;
+
+  constructor(private mainService: MainService, private fb: FormBuilder) {}
 
   formData = {
     nombre: '',
@@ -59,6 +65,14 @@ export class VentanaCreacionComponent implements OnInit {
     if (proyectosGuardados) {
       this.proyectos = JSON.parse(proyectosGuardados);
     }
+
+    this.projectPlanForm = this.fb.group({
+      objetivos: ['', Validators.required],
+      alcance: ['', Validators.required],
+      cronogramaInicial: ['', Validators.required],
+      responsabilidades: ['', Validators.required],
+      observaciones: ['']
+    });
   }
 
   toggleFormulario() {
@@ -143,7 +157,7 @@ export class VentanaCreacionComponent implements OnInit {
         identificador: proyecto.identificador,
         fechaInicio: proyecto.fechaInicio,
         responsable: proyecto.responsable,
-        descripcion: proyecto.descripcion,
+descripcion: proyecto.descripcion,
         tags: proyecto.tags
       };
       this.editandoId = id;
@@ -159,6 +173,7 @@ export class VentanaCreacionComponent implements OnInit {
   cerrarDetalle() {
     this.mostrarDetalle = false;
     this.detalleProyecto = null;
+    this.cancelarCreacionPlan();
   }
 
   eliminarProyecto(id: string) {
@@ -186,6 +201,34 @@ export class VentanaCreacionComponent implements OnInit {
         }
       });
     }
+  }
+
+  iniciarCreacionPlan(fase: Fase) {
+    this.faseActualParaPlan = fase;
+    this.mostrandoFormularioPlan = true;
+    this.projectPlanForm.reset();
+  }
+
+  cancelarCreacionPlan() {
+    this.mostrandoFormularioPlan = false;
+    this.faseActualParaPlan = null;
+  }
+
+  guardarPlan() {
+    if (this.projectPlanForm.invalid || !this.faseActualParaPlan) {
+      return;
+    }
+
+    const nuevoPlan: ProjectPlan = {
+      ...this.projectPlanForm.value,
+      version: 1,
+      fecha: new Date(),
+      fase: this.faseActualParaPlan.nombre,
+    };
+
+    this.faseActualParaPlan.plan = nuevoPlan;
+    this.guardarProyectos();
+    this.cancelarCreacionPlan();
   }
 
   private guardarProyectos() {
