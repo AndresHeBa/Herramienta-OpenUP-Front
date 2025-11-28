@@ -1,0 +1,128 @@
+<div class="artifact-uploader">
+  <h3>Fase: {{ currentPhase }}</h3>
+
+  <div class="phase-controls">
+    <button (click)="previousPhase()">Anterior</button>
+    <button (click)="proceedToNextPhase()">Siguiente fase</button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="upload()" class="upload-form">
+    <label class="required-list">
+      Artefactos requeridos en esta fase
+      <ul>
+        <li *ngFor="let r of requiredArtifactsMap[currentPhase]">
+          {{ r }} - <strong>{{ getLatestStatusForType(r) }}</strong>
+          <span *ngIf="getLatestVersionForType(r)">(v{{ getLatestVersionForType(r) }})</span>
+        </li>
+      </ul>
+    </label>
+    <label>
+      Tipo de artefacto
+      <select formControlName="artifactType">
+        <option *ngFor="let a of requiredArtifactsMap[currentPhase]" [value]="a">{{ a }}</option>
+        <option value="Otro">Otro...</option>
+      </select>
+    </label>
+
+    <label>
+      Autor
+      <input formControlName="author" />
+    </label>
+
+    <label>
+      Fecha
+      <input type="datetime-local" formControlName="date" />
+    </label>
+
+    <label>
+      Obligatorio
+      <input type="checkbox" formControlName="isMandatory" />
+    </label>
+
+    <label *ngIf="currentPhase === 'Elaboración'">
+      Prototipo (link)
+      <input formControlName="prototypeLink" placeholder="https://..." />
+    </label>
+
+    <label *ngIf="currentPhase === 'Construcción' || currentPhase === 'Transición'">
+      Enlace externo (repositorio / build)
+      <input formControlName="externalLink" placeholder="https://..." />
+    </label>
+
+    <label>
+      Tags (coma sepr.)
+      <input formControlName="tags" />
+    </label>
+
+    <label>
+      Archivo
+      <input type="file" (change)="onFileChange($event)" />
+    </label>
+
+    <!-- Structured: Test cases -->
+    <div class="structured" *ngIf="currentPhase === 'Construcción'">
+      <h4>Casos de prueba (opcionales)</h4>
+      <div *ngFor="let tc of testCases.controls; let i=index" [formGroupName]="i" class="testcase-row">
+        <input formControlName="testId" placeholder="ID test" />
+        <input formControlName="result" placeholder="Resultado" />
+        <input formControlName="defects" placeholder="Defectos" />
+        <button type="button" (click)="removeTestCase(i)">Eliminar</button>
+      </div>
+      <button type="button" (click)="addTestCase()">Agregar caso de prueba</button>
+    </div>
+
+    <!-- Iterations -->
+    <div class="structured" *ngIf="currentPhase === 'Construcción'">
+      <h4>Registro de Iteraciones (opcionales)</h4>
+      <div *ngFor="let it of iterations.controls; let i=index" [formGroupName]="i" class="iteration-row">
+        <input formControlName="activity" placeholder="Actividad" />
+        <input formControlName="comments" placeholder="Comentarios" />
+        <input formControlName="date" type="datetime-local" />
+        <button type="button" (click)="removeIteration(i)">Eliminar</button>
+      </div>
+      <button type="button" (click)="addIteration()">Agregar iteración</button>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" [disabled]="uploading">Subir artefacto</button>
+      <div *ngIf="uploading">Progreso: {{ uploadProgress }}%</div>
+    </div>
+  </form>
+
+  <div class="messages">
+    <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
+    <div class="success" *ngIf="successMessage">{{ successMessage }}</div>
+  </div>
+
+  <section class="artifacts-list">
+    <h4>Artefactos en {{ currentPhase }}</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Versión</th>
+          <th>Autor</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let a of artifacts">
+          <td>{{ a.artifactType }}</td>
+          <td>{{ a.version }}</td>
+          <td>{{ a.author }}</td>
+          <td>{{ a.status }}</td>
+          <td>
+            <button (click)="setArtifactStatus(a._id, 'En revisión')">Poner en revisión</button>
+            <button (click)="setArtifactStatus(a._id, 'Aprobado')">Aprobar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="phase-actions">
+    <button (click)="proceedToNextPhase()">Completar fase y pasar a siguiente</button>
+    <button *ngIf="currentPhase === 'Transición'" (click)="validateTransitionAndClose()">Validar cierre (Transición)</button>
+  </div>
+</div>

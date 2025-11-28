@@ -1,0 +1,18 @@
+.artifact-uploader {
+max-width: 980px;
+margin: 0 auto;
+padding: 16px;
+font-family: Arial, Helvetica, sans-serif;
+}
+.upload-form {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 12px;
+}
+.structured { grid-column: 1 / -1; background: #f7f7f7; padding: 8px; border-radius: 6px; }
+.form-actions { grid-column: 1 / -1; display:flex; gap:12px; align-items:center }
+.artifacts-list table { width:100%; border-collapse: collapse; }
+.artifacts-list th, .artifacts-list td { border: 1px solid #ddd; padding: 8px; }
+.phase-controls { display:flex; gap:12px; margin-bottom:12px }
+.messages .error { color: #a33 }
+.messages .success { color: #2a7 }
