@@ -59,4 +59,14 @@ updateMandatoryStatuses(updateList: any[]) {
   return this.http.put(`${this.baseUrl}/updateMandatoryStatus`, { updateList });
 }
 
+// Update artifact current workflow/state
+updateArtifactState(artifactId: string, payload: any) {
+  return this.http.put(`${this.baseUrl}/updateArtifactState/${artifactId}`, payload);
+}
+
+// Get audit history of state changes for an artifact
+getArtifactStateHistory(artifactId: string) {
+  return this.http.get(`${this.baseUrl}/getArtifactStateHistory/${artifactId}`);
+}
+
 }

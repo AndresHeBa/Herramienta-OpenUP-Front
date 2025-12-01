@@ -1,0 +1,59 @@
+<div class="associate-workflows-root">
+  <div class="header">
+    <h1>Gestión de Flujos de Trabajo</h1>
+  </div>
+  <div class="layout">
+    <div class="left">
+      <section class="workflows">
+        <h3>Flujos de trabajo</h3>
+        <button (click)="newWorkflow()">Crear nuevo flujo</button>
+        <div *ngIf="loading">Cargando...</div>
+        <ul class="workflow-list">
+          <li *ngFor="let w of workflows" [class.selected]="selectedWorkflow===w">
+            <div class="wf-header">
+              <strong>{{ w.name }}</strong>
+              <div class="wf-actions">
+                <button (click)="selectWorkflow(w)">Ver</button>
+                <button (click)="editWorkflow(w)">Editar</button>
+                <button (click)="deleteWorkflow(w._id)">Eliminar</button>
+              </div>
+            </div>
+            <ol class="states">
+              <li *ngFor="let s of w.states">{{ s.name }} - Responsable(s): {{ formatResponsible(s) }}</li>
+            </ol>
+          </li>
+        </ul>
+      </section>
+      <section class="editor" *ngIf="editingWorkflow">
+        <h3>{{ editingWorkflow._id ? 'Editar flujo' : 'Nuevo flujo' }}</h3>
+        <form [formGroup]="workflowForm" (ngSubmit)="saveWorkflow()">
+          <label>Nombre del flujo</label>
+          <input formControlName="name" />
+          <div class="states-edit">
+            <h4>Estados (ordenados)</h4>
+            <button type="button" (click)="addState()">Agregar estado</button>
+            <ul>
+              <li *ngFor="let s of editingWorkflow.states; let i = index">
+                <input [(ngModel)]="editingWorkflow.states[i].name" [ngModelOptions]="{standalone: true}" name="stateName{{i}}" />
+                <input placeholder="Responsables (coma separado)"
+                       [ngModel]="(editingWorkflow.states[i].responsible || []).join(', ')"
+                       (ngModelChange)="onChangeResponsible(i, $event)"
+                       [ngModelOptions]="{standalone: true}"
+                       name="stateResp{{i}}" />
+                <button type="button" (click)="moveStateUp(i)">↑</button>
+                <button type="button" (click)="moveStateDown(i)">↓</button>
+                <button type="button" (click)="removeState(i)">Eliminar</button>
+              </li>
+            </ul>
+          </div>
+          <div class="editor-actions">
+            <button type="submit">Guardar</button>
+            <button type="button" (click)="cancelEdit()">Cancelar</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+  </div>
+  <div class="errors" *ngIf="error">Error: {{ error }}</div>
+</div>

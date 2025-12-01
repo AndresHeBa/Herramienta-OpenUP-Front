@@ -33,6 +33,7 @@
             <th *ngIf="currentPhase === 'Elaboración'">Prototipo</th>
             <th *ngIf="currentPhase === 'Construcción' || currentPhase === 'Transición'">Enlace externo</th>
             <th>Tags</th>
+            <th>Flujo</th>
             <th>Estado</th>
             <th>Versión</th>
             <th>Acciones</th>
@@ -48,13 +49,42 @@
             <td *ngIf="currentPhase === 'Construcción' || currentPhase === 'Transición'">{{ getLatestArtifactOfType(afCtrl.value.artifactType)?.externalLink || '-' }}</td>
             <td>{{ (getLatestArtifactOfType(afCtrl.value.artifactType)?.tags || []).join(', ') || '-' }}</td>
             <td>
-              <span class="estado-badge">
-                {{ hasLatestArtifact(afCtrl.value.artifactType) ? getLatestStatusForType(afCtrl.value.artifactType) : 'Sin Subir' }}
-              </span>
+              <ng-container *ngIf="hasLatestArtifact(afCtrl.value.artifactType); else noWf">
+                <div *ngIf="isEditing(i); else wfReadOnly">
+                  <select [ngModel]="selectedWorkflowByType[afCtrl.value.artifactType] || getLatestWorkflowIdForType(afCtrl.value.artifactType)"
+                          (ngModelChange)="onWorkflowSelect(afCtrl.value.artifactType, $event)"
+                          [ngModelOptions]="{standalone: true}">
+                    <option [ngValue]="undefined">-- Seleccionar --</option>
+                    <option *ngFor="let w of workflows" [ngValue]="w._id">{{ w.name }}</option>
+                  </select>
+                  <button type="button" class="btn-accion btn-ver" (click)="assignWorkflowForType(afCtrl.value.artifactType)">Asignar</button>
+                </div>
+                <ng-template #wfReadOnly>
+                  {{ getWorkflowNameById(getLatestWorkflowIdForType(afCtrl.value.artifactType)) || '-' }}
+                </ng-template>
+              </ng-container>
+              <ng-template #noWf>-</ng-template>
+            </td>
+            <td>
+              <div *ngIf="hasLatestArtifact(afCtrl.value.artifactType); else noState">
+                <span class="estado-badge">
+                  {{ getLatestStateForType(afCtrl.value.artifactType) }}
+                </span>
+                <div *ngIf="isEditing(i) && getLatestWorkflowIdForType(afCtrl.value.artifactType)" style="margin-top:6px; display:flex; gap:6px; align-items:center;">
+                  <select [ngModel]="selectedStateByType[afCtrl.value.artifactType] || getLatestStateForType(afCtrl.value.artifactType)"
+                          (ngModelChange)="onStateSelect(afCtrl.value.artifactType, $event)"
+                          [ngModelOptions]="{standalone: true}">
+                    <option *ngFor="let s of getStatesForWorkflow(getLatestWorkflowIdForType(afCtrl.value.artifactType))" [ngValue]="s">{{ s }}</option>
+                  </select>
+                  <button type="button" class="btn-accion btn-editar" (click)="updateStateForType(afCtrl.value.artifactType)">Actualizar</button>
+                </div>
+              </div>
+              <ng-template #noState>Sin Subir</ng-template>
             </td>
             <td>{{ getLatestVersionForType(afCtrl.value.artifactType) || '-' }}</td>
             <td class="acciones">
-              <button type="button" class="btn-accion btn-editar" (click)="openModal(i)" [disabled]="uploading || !projectId">Subir</button>
+              <button type="button" class="btn-accion btn-editar" (click)="toggleEdit(i)" [disabled]="!projectId">{{ isEditing(i) ? 'Hecho' : 'Editar' }}</button>
+              <button type="button" class="btn-accion btn-ver" (click)="openModal(i)" [disabled]="uploading || !projectId">Subir</button>
               <button type="button" class="btn-accion btn-ver" (click)="openHistory(i)" [disabled]="!hasLatestArtifact(afCtrl.value.artifactType)">Historial</button>
             </td>
           </tr>

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormArray, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { WorkflowService } from '../service/workflow.service';
 import { ActiveProjectService } from '../service/active-project.service';
 import { ArtifactService } from '../service/artifact.service';
 import { finalize } from 'rxjs/operators';
@@ -16,7 +17,7 @@ type Phase = 'Incepción' | 'Elaboración' | 'Construcción' | 'Transición';
   standalone: true,
   templateUrl: './artifact-uploader.component.html',
   styleUrls: ['./artifact-uploader.component.css'],
-  imports: [ReactiveFormsModule, CommonModule]
+  imports: [ReactiveFormsModule, FormsModule, CommonModule]
 })
 export class ArtifactUploaderComponent implements OnInit {
   form: FormGroup;
@@ -75,7 +76,12 @@ export class ArtifactUploaderComponent implements OnInit {
   historyList: any[] = [];
   compareSelection: number[] = [];
 
-  constructor(private fb: FormBuilder, private svc: ArtifactService, private route: ActivatedRoute, private activeProject: ActiveProjectService, private router: Router) {
+  // HU-012: workflows and per-type selections
+  workflows: any[] = [];
+  selectedWorkflowByType: Record<string, string> = {};
+  selectedStateByType: Record<string, string> = {};
+
+  constructor(private fb: FormBuilder, private svc: ArtifactService, private route: ActivatedRoute, private activeProject: ActiveProjectService, private router: Router, private workflowSvc: WorkflowService) {
     this.form = this.fb.group({
       artifactType: [''],
       phase: [this.currentPhase, Validators.required],
@@ -141,6 +147,29 @@ export class ArtifactUploaderComponent implements OnInit {
     }
     // initialize per-type fields for the initial phase by loading required artifact types from server
     this.loadRequiredArtifactTypes();
+    // Load workflows for HU-012 linking
+    this.loadWorkflows();
+  }
+
+  private toArray<T>(val: any): T[] {
+    if (!val) return [] as T[];
+    if (Array.isArray(val)) return val as T[];
+    const inner = val?.Result ?? val?.result ?? val?.data ?? val;
+    if (Array.isArray(inner)) return inner as T[];
+    if (typeof inner === 'object') return Object.values(inner) as T[];
+    return [] as T[];
+  }
+
+  loadWorkflows() {
+    this.workflowSvc.getWorkflows().subscribe({
+      next: (res: any) => {
+        this.workflows = this.toArray(res);
+      },
+      error: () => {
+        console.warn('No se pudieron cargar los flujos de trabajo');
+        this.workflows = [];
+      }
+    });
   }
 
   // Load required artifact types from backend and group them by phase
@@ -404,18 +433,94 @@ export class ArtifactUploaderComponent implements OnInit {
   }
 
   startEdit(index: number) {
-    // kept for backward compatibility (not used when modal is enabled)
-    this.openModal(index);
+    this.enterEdit(index);
   }
 
   cancelEdit(index: number) {
-    // keep behavior consistent with modal cancel
-    if (this.modalIndex === index) this.closeModal();
+    this.exitEdit(index);
+  }
+
+  toggleEdit(index: number) {
+    if (this.isEditing(index)) this.exitEdit(index);
+    else this.enterEdit(index);
+  }
+
+  private enterEdit(index: number) {
+    this.editingRows.add(index);
+    const type = this.artifactFields.at(index).value.artifactType;
+    const curWf = this.getLatestWorkflowIdForType(type);
+    if (curWf) {
+      this.selectedWorkflowByType[type] = curWf;
+      const curState = this.getLatestStateForType(type);
+      if (curState) this.selectedStateByType[type] = curState;
+    }
+  }
+
+  private exitEdit(index: number) {
+    this.editingRows.delete(index);
   }
 
   getLatestAuthorForType(type: string): string | undefined {
     const art = this.getLatestArtifactOfType(type);
     return art ? (art.author || undefined) : undefined;
+  }
+
+  // HU-012 helpers
+  getLatestWorkflowIdForType(type: string): string | undefined {
+    const art = this.getLatestArtifactOfType(type);
+    return art ? (art.currentWorkflowId || art.workflowId) : undefined;
+  }
+
+  getLatestStateForType(type: string): string {
+    const art = this.getLatestArtifactOfType(type);
+    return art ? (art.currentState || art.status || 'Pendiente') : 'Sin Subir';
+  }
+
+  getWorkflowNameById(id?: string): string {
+    if (!id) return '-';
+    const wf = this.workflows.find(w => w._id === id);
+    return wf?.name || '-';
+  }
+
+  getStatesForWorkflow(id?: string): string[] {
+    if (!id) return [];
+    const wf = this.workflows.find(w => w._id === id);
+    const states: any[] = wf?.states || [];
+    return Array.isArray(states) ? states.map((s: any) => (s?.name ?? String(s))).filter(Boolean) : [];
+  }
+
+  onWorkflowSelect(type: string, wfId: string) {
+    this.selectedWorkflowByType[type] = wfId;
+    // Preselect first state when selecting a workflow
+    const states = this.getStatesForWorkflow(wfId);
+    if (states.length) this.selectedStateByType[type] = states[0];
+  }
+
+  assignWorkflowForType(type: string) {
+    const latest = this.getLatestArtifactOfType(type);
+    if (!latest) { this.errorMessage = 'No hay versión del artefacto para asignar flujo.'; return; }
+    const wfId = this.selectedWorkflowByType[type] || this.getLatestWorkflowIdForType(type);
+    if (!wfId) { this.errorMessage = 'Selecciona un flujo antes de asignar.'; return; }
+    const initialState = this.selectedStateByType[type] || this.getStatesForWorkflow(wfId)[0] || '';
+    this.svc.updateArtifactState(latest._id, { workflowId: wfId, state: initialState }).subscribe({
+      next: () => this.loadArtifacts(),
+      error: () => this.errorMessage = 'No se pudo asignar el flujo'
+    });
+  }
+
+  onStateSelect(type: string, stateName: string) {
+    this.selectedStateByType[type] = stateName;
+  }
+
+  updateStateForType(type: string) {
+    const latest = this.getLatestArtifactOfType(type);
+    if (!latest) { this.errorMessage = 'No hay versión del artefacto para cambiar estado.'; return; }
+    const newState = this.selectedStateByType[type];
+    if (!newState) { this.errorMessage = 'Selecciona un estado.'; return; }
+    this.svc.updateArtifactState(latest._id, { state: newState, assignedTo: [] }).subscribe({
+      next: () => this.loadArtifacts(),
+      error: () => this.errorMessage = 'No se pudo cambiar el estado'
+    });
   }
 
   hasLatestArtifact(type: string): boolean {
@@ -652,8 +757,9 @@ export class ArtifactUploaderComponent implements OnInit {
   }
 
   getLatestStatusForType(type: string): string {
+    // Keep for compatibility; now prefer currentState
     const art = this.getLatestArtifactOfType(type);
-    return art ? (art.status || 'Pendiente') : 'Pendiente';
+    return art ? (art.currentState || art.status || 'Pendiente') : 'Pendiente';
   }
 
   getLatestVersionForType(type: string): number | undefined {

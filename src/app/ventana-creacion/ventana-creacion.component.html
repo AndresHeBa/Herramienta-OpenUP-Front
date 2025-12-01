@@ -71,6 +71,7 @@
                         title="Eliminar proyecto">Eliminar</button>
                     <button class="btn-accion btn-archivar" (click)="archivarProyecto(proyecto.id)"
                         title="Archivar proyecto">Archivar</button>
+                    <button class="btn-accion btn-ver" *ngIf="proyecto.identificador" (click)="openArtifacts(proyecto.identificador)" title="Abrir artefactos">Abrir Artefactos</button>
                 </td>
             </tr>
         </tbody>
@@ -196,7 +197,6 @@
 
                 <div class="modal-actions">
                     <button class="btn-accion" (click)="cerrarDetalle()">Cerrar</button>
-                    <button class="btn-accion" *ngIf="detalleProyecto.identificador" (click)="openArtifacts(detalleProyecto.identificador)">Abrir Artefactos</button>
                 </div>
     </div>
 </div>
@@ -222,7 +222,3 @@
     [projectId]="selectedProjectIdForMicroincrement"
     (closeModal)="closeMicroincrementModal($event)"
 ></app-microincrement-modal>
-
-<footer class="footer">
-    <p>© 2025 Gestión de Proyectos - Angular</p>
-</footer>
