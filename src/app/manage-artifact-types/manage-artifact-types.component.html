@@ -1,0 +1,41 @@
+<div class="manage-artifact-types">
+  <div class="header">
+    <h1>Gestión de Tipos de Artefacto</h1>
+    <div>
+      <button class="btn-nuevo" (click)="loadArtifactTypes()">Recargar</button>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2>Lista de tipos</h2>
+
+    <div *ngIf="loading" class="sin-proyectos">Cargando tipos...</div>
+    <div *ngIf="!loading">
+      <div class="tabla-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Fase</th>
+              <th>Obligatorio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of artifactTypes">
+              <td>{{ t.artifactType || t.name || '-' }}</td>
+              <td>{{ t.phase || '-' }}</td>
+              <td>
+                <input type="checkbox" [checked]="t.isMandatory" (change)="toggleMandatory(t, $event)" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="botones-grupo" style="margin-top:12px">
+        <button class="btn-accion btn-archivar" (click)="saveAll()">Guardar</button>
+        <button class="btn-cancelar" (click)="loadArtifactTypes()">Recargar</button>
+      </div>
+    </div>
+  </div>
+</div>

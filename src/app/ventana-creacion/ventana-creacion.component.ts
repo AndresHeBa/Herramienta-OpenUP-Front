@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MainService } from '../service/main.service';
+import { ActiveProjectService } from '../service/active-project.service';
+import { Router } from '@angular/router';
 import { ProjectPlan } from '../models/project-plan.model';
 
 interface Fase {
@@ -41,7 +43,7 @@ export class VentanaCreacionComponent implements OnInit {
   mostrandoFormularioPlan = false;
   faseActualParaPlan: Fase | null = null;
 
-  constructor(private mainService: MainService, private fb: FormBuilder) {}
+  constructor(private mainService: MainService, private fb: FormBuilder, public activeProject: ActiveProjectService, private router: Router) { }
 
   formData = {
     nombre: '',
@@ -157,7 +159,7 @@ export class VentanaCreacionComponent implements OnInit {
         identificador: proyecto.identificador,
         fechaInicio: proyecto.fechaInicio,
         responsable: proyecto.responsable,
-descripcion: proyecto.descripcion,
+        descripcion: proyecto.descripcion,
         tags: proyecto.tags
       };
       this.editandoId = id;
@@ -174,6 +176,14 @@ descripcion: proyecto.descripcion,
     this.mostrarDetalle = false;
     this.detalleProyecto = null;
     this.cancelarCreacionPlan();
+  }
+
+  openArtifacts(projectIdentifier: string) {
+    this.activeProject.setActiveProject(projectIdentifier);
+    // close modal and navigate to artifacts view for project
+    this.cerrarDetalle();
+    // navigate with projectId param
+    this.router.navigate(['/artifacts', projectIdentifier]);
   }
 
   eliminarProyecto(id: string) {

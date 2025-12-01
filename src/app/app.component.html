@@ -1,3 +1,22 @@
-<app-ventana-creacion></app-ventana-creacion>
+<div class="app-shell">
+	<aside class="sidebar mat-elevation-z4">
+        <div class="brand">
+            <mat-icon>description</mat-icon>
+            OpenUP
+        </div>
 
-<app-artifact-uploader></app-artifact-uploader>
+        <nav>
+            <a mat-button routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+            <mat-icon>home</mat-icon> Inicio
+            </a>
+            <a mat-button routerLink="/artifact-types" routerLinkActive="active">
+            <mat-icon>assignment</mat-icon> Tipos de artefacto
+            </a>
+        </nav>
+    </aside>
+
+
+	<main class="content">
+		<router-outlet></router-outlet>
+	</main>
+</div>

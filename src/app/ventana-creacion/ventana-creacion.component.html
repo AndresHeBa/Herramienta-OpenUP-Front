@@ -63,10 +63,14 @@
                 <td>{{ proyecto.descripcion || '-' }}</td>
                 <td>{{ proyecto.tags || '-' }}</td>
                 <td class="acciones">
-                    <button class="btn-accion btn-ver" (click)="verDetalles(proyecto.id)" title="Ver detalles">Ver</button>
-                    <button class="btn-accion btn-editar" (click)="editarProyecto(proyecto.id)" title="Editar proyecto">Editar</button>
-                    <button class="btn-accion btn-eliminar" (click)="eliminarProyecto(proyecto.id)" title="Eliminar proyecto">Eliminar</button>
-                    <button class="btn-accion btn-archivar" (click)="archivarProyecto(proyecto.id)" title="Archivar proyecto">Archivar</button>
+                    <button class="btn-accion btn-ver" (click)="verDetalles(proyecto.id)"
+                        title="Ver detalles">Ver</button>
+                    <button class="btn-accion btn-editar" (click)="editarProyecto(proyecto.id)"
+                        title="Editar proyecto">Editar</button>
+                    <button class="btn-accion btn-eliminar" (click)="eliminarProyecto(proyecto.id)"
+                        title="Eliminar proyecto">Eliminar</button>
+                    <button class="btn-accion btn-archivar" (click)="archivarProyecto(proyecto.id)"
+                        title="Archivar proyecto">Archivar</button>
                 </td>
             </tr>
         </tbody>
@@ -78,7 +82,7 @@
     <div class="modal-contenido">
         <button class="btn-cerrar" (click)="cerrarDetalle()">×</button>
         <h2>{{ detalleProyecto.nombre }}</h2>
-        
+
         <div class="detalle-seccion">
             <h3>Información General</h3>
             <div class="detalle-grid">
@@ -139,7 +143,8 @@
                         </div>
 
                         <!-- 2. Mostrar botón para crear plan si no existe Y no se está mostrando el form -->
-                        <button *ngIf="!fase.plan && !mostrandoFormularioPlan" (click)="iniciarCreacionPlan(fase)" class="btn-crear-plan">
+                        <button *ngIf="!fase.plan && !mostrandoFormularioPlan" (click)="iniciarCreacionPlan(fase)"
+                            class="btn-crear-plan">
                             + Crear Plan de Proyecto Inicial
                         </button>
 
@@ -157,14 +162,17 @@
                                     <input formControlName="cronogramaInicial" placeholder="Hitos y fechas clave">
                                 </label>
                                 <label>Responsabilidades:
-                                    <input formControlName="responsabilidades" placeholder="Roles y responsabilidades del equipo">
+                                    <input formControlName="responsabilidades"
+                                        placeholder="Roles y responsabilidades del equipo">
                                 </label>
                                 <label>Observaciones:
-                                    <textarea formControlName="observaciones" placeholder="Notas adicionales para la versión 1"></textarea>
+                                    <textarea formControlName="observaciones"
+                                        placeholder="Notas adicionales para la versión 1"></textarea>
                                 </label>
                                 <div class="botones-grupo">
                                     <button type="submit" [disabled]="projectPlanForm.invalid">Guardar Plan</button>
-                                    <button type="button" (click)="cancelarCreacionPlan()" class="btn-cancelar">Cancelar</button>
+                                    <button type="button" (click)="cancelarCreacionPlan()"
+                                        class="btn-cancelar">Cancelar</button>
                                 </div>
                             </form>
                         </div>
@@ -173,7 +181,10 @@
             </div>
         </div>
 
-        <button class="btn-cerrar-modal" (click)="cerrarDetalle()">Cerrar</button>
+                <div class="modal-actions">
+                    <button class="btn-accion" (click)="cerrarDetalle()">Cerrar</button>
+                    <button class="btn-accion" *ngIf="detalleProyecto.identificador" (click)="openArtifacts(detalleProyecto.identificador)">Abrir Artefactos</button>
+                </div>
     </div>
 </div>
 

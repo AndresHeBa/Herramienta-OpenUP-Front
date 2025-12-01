@@ -12,10 +12,10 @@ constructor(private http: HttpClient) {}
 
 
 uploadArtifact(formData: FormData): Observable<any> {
-return this.http.post(`${this.baseUrl}/uploadArtifact`, formData, {
-reportProgress: true,
-observe: 'events'
-});
+  return this.http.post(`${this.baseUrl}/uploadArtifact`, formData, {
+  reportProgress: true,
+  observe: 'events'
+  });
 }
 
 
@@ -30,11 +30,33 @@ getArtifacts(projectId: string, phase?: string) {
 
 
 updateArtifactVersion(payload: any): Observable<any> {
-return this.http.put(`${this.baseUrl}/updateArtifactVersion`, payload);
+  return this.http.put(`${this.baseUrl}/updateArtifactVersion`, payload);
 }
 
 
 validateTransition(projectId: string): Observable<any> {
-return this.http.post(`${this.baseUrl}/validateTransition`, { projectId });
+  return this.http.post(`${this.baseUrl}/validateTransition`, { projectId });
 }
+
+getArtifactTypes() {
+  return this.http.get(`${this.baseUrl}/getArtifactTypes`);
+
+}
+
+getMandatoryArtifactTypes() {
+  return this.http.get(`${this.baseUrl}/getMandatoryArtifactTypes`);
+
+}
+
+// Update artifact type metadata (e.g. toggle isMandatory)
+updateArtifactType(payload: any) {
+  return this.http.put(`${this.baseUrl}/updateArtifactType`, payload);
+}
+
+// Bulk update mandatory status for multiple artifact types
+updateMandatoryStatuses(updateList: any[]) {
+  // backend function name: fnUpdateMandatoryStatus -> expose via /updateMandatoryStatus
+  return this.http.put(`${this.baseUrl}/updateMandatoryStatus`, { updateList });
+}
+
 }

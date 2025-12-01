@@ -1,12 +1,13 @@
 import { Component } from '@angular/core';
-import { VentanaCreacionComponent } from "./ventana-creacion/ventana-creacion.component";
-import { ArtifactUploaderComponent } from "./artifact-uploader/artifact-uploader.component";
+import { RouterModule } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
+  standalone: true,
   selector: 'app-root',
-  imports: [VentanaCreacionComponent, ArtifactUploaderComponent],
+  imports: [RouterModule, MatIconModule],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent {
   title = 'OpenUP';

@@ -1,128 +1,174 @@
 <div class="artifact-uploader">
-  <h3>Fase: {{ currentPhase }}</h3>
 
-  <div class="phase-controls">
-    <button (click)="previousPhase()">Anterior</button>
-    <button (click)="proceedToNextPhase()">Siguiente fase</button>
+  <!-- Encabezado -->
+  <div class="header">
+    <button class="btn-nuevo btn-back" (click)="goToProjects()">← Proyectos</button>
+    <div class="project-info">
+      <h1 *ngIf="projectId">Proyecto: {{ projectId }} — Fase: {{ currentPhase }}</h1>
+      <h1 *ngIf="!projectId">Fase: {{ currentPhase }}</h1>
+      <div *ngIf="isLoadingArtifacts" class="loading">Cargando artefactos...</div>
+    </div>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="upload()" class="upload-form">
-    <label class="required-list">
-      Artefactos requeridos en esta fase
-      <ul>
-        <li *ngFor="let r of requiredArtifactsMap[currentPhase]">
-          {{ r }} - <strong>{{ getLatestStatusForType(r) }}</strong>
-          <span *ngIf="getLatestVersionForType(r)">(v{{ getLatestVersionForType(r) }})</span>
-        </li>
-      </ul>
-    </label>
-    <label>
-      Tipo de artefacto
-      <select formControlName="artifactType">
-        <option *ngFor="let a of requiredArtifactsMap[currentPhase]" [value]="a">{{ a }}</option>
-        <option value="Otro">Otro...</option>
-      </select>
-    </label>
-
-    <label>
-      Autor
-      <input formControlName="author" />
-    </label>
-
-    <label>
-      Fecha
-      <input type="datetime-local" formControlName="date" />
-    </label>
-
-    <label>
-      Obligatorio
-      <input type="checkbox" formControlName="isMandatory" />
-    </label>
-
-    <label *ngIf="currentPhase === 'Elaboración'">
-      Prototipo (link)
-      <input formControlName="prototypeLink" placeholder="https://..." />
-    </label>
-
-    <label *ngIf="currentPhase === 'Construcción' || currentPhase === 'Transición'">
-      Enlace externo (repositorio / build)
-      <input formControlName="externalLink" placeholder="https://..." />
-    </label>
-
-    <label>
-      Tags (coma sepr.)
-      <input formControlName="tags" />
-    </label>
-
-    <label>
-      Archivo
-      <input type="file" (change)="onFileChange($event)" />
-    </label>
-
-    <!-- Structured: Test cases -->
-    <div class="structured" *ngIf="currentPhase === 'Construcción'">
-      <h4>Casos de prueba (opcionales)</h4>
-      <div *ngFor="let tc of testCases.controls; let i=index" [formGroupName]="i" class="testcase-row">
-        <input formControlName="testId" placeholder="ID test" />
-        <input formControlName="result" placeholder="Resultado" />
-        <input formControlName="defects" placeholder="Defectos" />
-        <button type="button" (click)="removeTestCase(i)">Eliminar</button>
-      </div>
-      <button type="button" (click)="addTestCase()">Agregar caso de prueba</button>
+  <!-- Controles de fase -->
+  <div class="form-section">
+    <div class="botones-grupo">
+      <button class="btn-nuevo" (click)="previousPhase()">Anterior</button>
+      <button class="btn-nuevo" (click)="proceedToNextPhase()">Siguiente fase</button>
     </div>
-
-    <!-- Iterations -->
-    <div class="structured" *ngIf="currentPhase === 'Construcción'">
-      <h4>Registro de Iteraciones (opcionales)</h4>
-      <div *ngFor="let it of iterations.controls; let i=index" [formGroupName]="i" class="iteration-row">
-        <input formControlName="activity" placeholder="Actividad" />
-        <input formControlName="comments" placeholder="Comentarios" />
-        <input formControlName="date" type="datetime-local" />
-        <button type="button" (click)="removeIteration(i)">Eliminar</button>
-      </div>
-      <button type="button" (click)="addIteration()">Agregar iteración</button>
-    </div>
-
-    <div class="form-actions">
-      <button type="submit" [disabled]="uploading">Subir artefacto</button>
-      <div *ngIf="uploading">Progreso: {{ uploadProgress }}%</div>
-    </div>
-  </form>
-
-  <div class="messages">
-    <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
-    <div class="success" *ngIf="successMessage">{{ successMessage }}</div>
   </div>
 
-  <section class="artifacts-list">
-    <h4>Artefactos en {{ currentPhase }}</h4>
-    <table>
-      <thead>
-        <tr>
-          <th>Tipo</th>
-          <th>Versión</th>
-          <th>Autor</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let a of artifacts">
-          <td>{{ a.artifactType }}</td>
-          <td>{{ a.version }}</td>
-          <td>{{ a.author }}</td>
-          <td>{{ a.status }}</td>
-          <td>
-            <button (click)="setArtifactStatus(a._id, 'En revisión')">Poner en revisión</button>
-            <button (click)="setArtifactStatus(a._id, 'Aprobado')">Aprobar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
+  <!-- Tabla de artefactos requeridos -->
+  <div class="tabla-container">
+    <h2>Artefactos Requeridos</h2>
 
+    <form [formGroup]="form" class="upload-form">
+      <table class="required-artifacts" formArrayName="artifactFields">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Archivo</th>
+            <th>Autor</th>
+            <th>Oblig.</th>
+            <th *ngIf="currentPhase === 'Elaboración'">Prototipo</th>
+            <th *ngIf="currentPhase === 'Construcción' || currentPhase === 'Transición'">Enlace externo</th>
+            <th>Tags</th>
+            <th>Estado</th>
+            <th>Versión</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let afCtrl of artifactFields.controls; let i = index" [formGroupName]="i">
+            <td>{{ afCtrl.value.artifactType }}</td>
+            <td>{{ getLatestFilenameForType(afCtrl.value.artifactType) || '-' }}</td>
+            <td>{{ getLatestAuthorForType(afCtrl.value.artifactType) || '-' }}</td>
+            <td>{{ hasLatestArtifact(afCtrl.value.artifactType) ? (getLatestArtifactOfType(afCtrl.value.artifactType)?.isMandatory ? 'Sí' : 'No') : '-' }}</td>
+            <td *ngIf="currentPhase === 'Elaboración'">{{ getLatestArtifactOfType(afCtrl.value.artifactType)?.prototypeLink || '-' }}</td>
+            <td *ngIf="currentPhase === 'Construcción' || currentPhase === 'Transición'">{{ getLatestArtifactOfType(afCtrl.value.artifactType)?.externalLink || '-' }}</td>
+            <td>{{ (getLatestArtifactOfType(afCtrl.value.artifactType)?.tags || []).join(', ') || '-' }}</td>
+            <td>
+              <span class="estado-badge">
+                {{ hasLatestArtifact(afCtrl.value.artifactType) ? getLatestStatusForType(afCtrl.value.artifactType) : 'Sin Subir' }}
+              </span>
+            </td>
+            <td>{{ getLatestVersionForType(afCtrl.value.artifactType) || '-' }}</td>
+            <td class="acciones">
+              <button type="button" class="btn-accion btn-editar" (click)="openModal(i)" [disabled]="uploading || !projectId">Subir</button>
+              <button type="button" class="btn-accion btn-ver" (click)="openHistory(i)" [disabled]="!hasLatestArtifact(afCtrl.value.artifactType)">Historial</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="form-actions">
+        <div *ngIf="!projectId" class="hint">Selecciona un proyecto desde Proyectos → Ver → Abrir Artefactos</div>
+        <div *ngIf="uploading">Progreso: {{ uploadProgress }}%</div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal para historial -->
+  <div class="modal" [class.visible]="historyModalIndex !== null">
+    <div class="modal-contenido" *ngIf="historyModalIndex !== null">
+      <button class="btn-cerrar" (click)="closeHistory()">×</button>
+      <h2>Historial - {{ artifactFields.at(historyModalIndex || 0).value.artifactType }}</h2>
+
+      <div class="detalle-seccion modal-acciones-encabezado">
+        <button class="btn-accion btn-ver" (click)="generateHistoryPdf()" [disabled]="!historyList || historyList.length === 0">Descargar historial (PDF)</button>
+      </div>
+
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Versión</th>
+            <th>Archivo</th>
+            <th>Autor</th>
+            <th>Fecha</th>
+            <th>Observaciones</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let h of historyList; let hi = index">
+            <td>v{{ h.version }}</td>
+            <td>{{ getFilenameFromArtifact(h) || '-' }}</td>
+            <td>{{ h.author || '-' }}</td>
+            <td>{{ h.date || h.createdAt || '-' }}</td>
+            <td>{{ h.observations || '-' }}</td>
+            <td class="acciones">
+              <button type="button" class="btn-accion btn-editar" (click)="toggleCompareSelection(hi)">
+                {{ compareSelection.indexOf(hi) >= 0 ? 'Seleccionado' : 'Comparar' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="compareSelection.length > 0" class="detalle-seccion">
+        <h3>Comparación de metadatos</h3>
+        <div *ngIf="getComparison().a && getComparison().b" class="detalle-grid">
+          <div class="detalle-item">
+            <strong>Versión A</strong>
+            <p>v{{ getComparison().a.version }} — {{ getFilenameFromArtifact(getComparison().a) }}</p>
+            <p><strong>Autor:</strong> {{ getComparison().a.author || '-' }}</p>
+            <p><strong>Fecha:</strong> {{ getComparison().a.date || getComparison().a.createdAt || '-' }}</p>
+            <p><strong>Observaciones:</strong> {{ getComparison().a.observations || '-' }}</p>
+          </div>
+          <div class="detalle-item">
+            <strong>Versión B</strong>
+            <p>v{{ getComparison().b.version }} — {{ getFilenameFromArtifact(getComparison().b) }}</p>
+            <p><strong>Autor:</strong> {{ getComparison().b.author || '-' }}</p>
+            <p><strong>Fecha:</strong> {{ getComparison().b.date || getComparison().b.createdAt || '-' }}</p>
+            <p><strong>Observaciones:</strong> {{ getComparison().b.observations || '-' }}</p>
+          </div>
+        </div>
+        <div *ngIf="compareSelection.length === 1">Selecciona otra versión para comparar.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de subida -->
+  <div class="modal" [class.visible]="modalIndex !== null">
+    <div class="modal-contenido" *ngIf="modalIndex !== null && rowEditForm" [formGroup]="rowEditForm">
+      <button class="btn-cerrar" (click)="closeModal()">×</button>
+      <h2>Subir artefacto - {{ artifactFields.at(modalIndex || 0).value.artifactType }}</h2>
+
+      <div class="form-section detalle-seccion">
+        <label>Archivo
+          <input type="file" (change)="onModalFileChange($event)" />
+          <small *ngIf="modalIndex !== null" class="hint">Archivo previo: {{ getLatestFilenameForType(artifactFields.at(modalIndex || 0).value.artifactType) || '-' }}</small>
+        </label>
+        <label>Autor
+          <input formControlName="author" />
+        </label>
+        <label>Obligatorio
+          <input type="checkbox" formControlName="isMandatory" />
+        </label>
+        <label *ngIf="currentPhase === 'Elaboración'">Prototipo (link)
+          <input formControlName="prototypeLink" placeholder="https://..." />
+        </label>
+        <label *ngIf="currentPhase === 'Construcción' || currentPhase === 'Transición'">Enlace externo
+          <input formControlName="externalLink" placeholder="https://..." />
+        </label>
+        <label>Tags
+          <input formControlName="tags" placeholder="tag1, tag2" />
+        </label>
+        <label>Observaciones (descripción de cambios)
+          <textarea formControlName="observations" rows="3"></textarea>
+        </label>
+      </div>
+
+      <div class="botones-grupo">
+        <button class="btn-accion btn-ver" (click)="submitModal()" [disabled]="uploading">Enviar</button>
+        <button class="btn-cancelar" (click)="closeModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones finales -->
   <div class="phase-actions">
-    <button (click)="proceedToNextPhase()">Completar fase y pasar a siguiente</button>
-    <button *ngIf="currentPhase === 'Transición'" (click)="validateTransitionAndClose()">Validar cierre (Transición)</button>
+    <button *ngIf="currentPhase === 'Transición'" class="btn-archivar" (click)="validateTransitionAndClose()">Validar cierre (Transición)</button>
   </div>
+
 </div>
