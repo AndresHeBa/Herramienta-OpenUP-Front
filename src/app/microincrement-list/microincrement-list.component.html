@@ -1,0 +1,87 @@
+<div class="container">
+  <h2>Microincrementos</h2>
+
+  <!-- New Microincrement Form -->
+  <div class="form-section">
+    <h3>Crear Nuevo Microincremento</h3>
+    <form [formGroup]="newMicroincrementForm" (ngSubmit)="createMicroincrement()" class="microincrement-form">
+      <div class="form-group">
+        <label for="newTitle">Título:</label>
+        <input id="newTitle" type="text" formControlName="title">
+      </div>
+      <div class="form-group">
+        <label for="newDescription">Descripción:</label>
+        <textarea id="newDescription" formControlName="description"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="newIteration">Iteración:</label>
+        <input id="newIteration" type="text" formControlName="iteration">
+      </div>
+      <div class="form-group">
+        <label for="newDeliverable">Entregable:</label>
+        <input id="newDeliverable" type="text" formControlName="deliverable">
+      </div>
+      <div class="form-group">
+        <label for="newDate">Fecha:</label>
+        <input id="newDate" type="date" formControlName="date">
+      </div>
+      <div class="form-group">
+        <label for="newAuthor">Autor:</label>
+        <input id="newAuthor" type="text" formControlName="author">
+      </div>
+      <button type="submit" [disabled]="!newMicroincrementForm.valid">Crear Microincremento</button>
+    </form>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="filter-section">
+    <h3>Filtrar Microincrementos</h3>
+    <form [formGroup]="filterForm" (ngSubmit)="applyFilter()" class="filter-form">
+      <div class="form-group">
+        <label for="filterIteration">Iteración:</label>
+        <input id="filterIteration" type="text" formControlName="iteration">
+      </div>
+      <div class="form-group">
+        <label for="filterDeliverable">Entregable:</label>
+        <input id="filterDeliverable" type="text" formControlName="deliverable">
+      </div>
+      <div class="form-group">
+        <label for="filterAuthor">Autor:</label>
+        <input id="filterAuthor" type="text" formControlName="author">
+      </div>
+      <button type="submit">Aplicar Filtro</button>
+    </form>
+  </div>
+
+  <!-- Microincrements List -->
+  <div class="list-section">
+    <h3>Lista de Microincrementos</h3>
+    <div *ngIf="microincrements.length === 0">No hay microincrementos para mostrar.</div>
+    <table *ngIf="microincrements.length > 0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Descripción</th>
+          <th>Iteración</th>
+          <th>Entregable</th>
+          <th>Fecha</th>
+          <th>Autor</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let micro of microincrements">
+          <td>{{ micro._id }}</td>
+          <td>{{ micro.title }}</td>
+          <td>{{ micro.description }}</td>
+          <td>{{ micro.iteration }}</td>
+          <td>{{ micro.deliverable }}</td>
+          <td>{{ micro.date | date:'shortDate' }}</td>
+          <td>{{ micro.author }}</td>
+          <td>{{ micro.status }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

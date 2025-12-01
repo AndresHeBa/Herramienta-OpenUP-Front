@@ -119,6 +119,19 @@
             </div>
         </div>
 
+        <!-- Progress Component -->
+        <div class="detalle-seccion">
+            <app-progress 
+                [projectId]="detalleProyecto.id"
+                (newIteration)="openIterationModal(null)"
+                (editIteration)="openIterationModal($event)"
+                (viewHistory)="openHistoryModal()"
+            ></app-progress>
+            <div class="action-buttons-for-micros">
+              <button class="btn-accion btn-ver" (click)="openMicroincrementModal(detalleProyecto.id)" title="Ver Microincrementos">Ver Microincrementos</button>
+            </div>
+        </div>
+
         <div class="detalle-seccion">
             <h3>Fases del Proyecto</h3>
             <div class="fases-list">
@@ -187,6 +200,28 @@
                 </div>
     </div>
 </div>
+
+<!-- Iteration Modal -->
+<app-iteration-modal 
+    *ngIf="mostrarIterationModal && detalleProyecto"
+    [projectId]="detalleProyecto.id"
+    [iteration]="selectedIteration"
+    (closeModal)="closeIterationModal($event)"
+></app-iteration-modal>
+
+<!-- History Modal -->
+<app-history-modal
+    *ngIf="mostrarHistoryModal && detalleProyecto"
+    [projectId]="detalleProyecto.id"
+    (closeModal)="closeHistoryModal()"
+></app-history-modal>
+
+<!-- Microincrement Modal -->
+<app-microincrement-modal
+    *ngIf="mostrarMicroincrementModal && selectedProjectIdForMicroincrement"
+    [projectId]="selectedProjectIdForMicroincrement"
+    (closeModal)="closeMicroincrementModal($event)"
+></app-microincrement-modal>
 
 <footer class="footer">
     <p>© 2025 Gestión de Proyectos - Angular</p>

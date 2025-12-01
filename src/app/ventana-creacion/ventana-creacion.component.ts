@@ -5,6 +5,11 @@ import { MainService } from '../service/main.service';
 import { ActiveProjectService } from '../service/active-project.service';
 import { Router } from '@angular/router';
 import { ProjectPlan } from '../models/project-plan.model';
+import { ProgressComponent } from '../progress/progress.component';
+import { IterationModalComponent } from '../iteration-modal/iteration-modal.component';
+import { HistoryModalComponent } from '../history-modal/history-modal.component';
+import { MicroincrementModalComponent } from '../microincrement-modal/microincrement-modal.component'; // Import the new modal
+import { Iteration } from '../models/iteration.model';
 
 interface Fase {
   nombre: string;
@@ -28,7 +33,7 @@ interface Proyecto {
 @Component({
   selector: 'app-ventana-creacion',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ProgressComponent, IterationModalComponent, HistoryModalComponent, MicroincrementModalComponent],
   templateUrl: './ventana-creacion.component.html',
   styleUrl: './ventana-creacion.component.css'
 })
@@ -42,6 +47,14 @@ export class VentanaCreacionComponent implements OnInit {
   projectPlanForm!: FormGroup;
   mostrandoFormularioPlan = false;
   faseActualParaPlan: Fase | null = null;
+
+  mostrarIterationModal = false;
+  selectedIteration: Iteration | null = null;
+
+  mostrarHistoryModal = false;
+
+  mostrarMicroincrementModal = false; // New flag for Microincrement modal
+  selectedProjectIdForMicroincrement: string | null = null; // To pass projectId to the modal
 
   constructor(private mainService: MainService, private fb: FormBuilder, public activeProject: ActiveProjectService, private router: Router) { }
 
@@ -239,6 +252,42 @@ export class VentanaCreacionComponent implements OnInit {
     this.faseActualParaPlan.plan = nuevoPlan;
     this.guardarProyectos();
     this.cancelarCreacionPlan();
+  }
+
+  openIterationModal(iteration: Iteration | null) {
+    this.selectedIteration = iteration;
+    this.mostrarIterationModal = true;
+  }
+
+  closeIterationModal(refresh: boolean) {
+    this.mostrarIterationModal = false;
+    this.selectedIteration = null;
+    if (refresh) {
+      // Logic to refresh progress data in the progress component
+      // This will be handled by re-rendering the progress component.
+      // For now, just close the modal.
+    }
+  }
+
+  openHistoryModal() {
+    this.mostrarHistoryModal = true;
+  }
+
+  closeHistoryModal() {
+    this.mostrarHistoryModal = false;
+  }
+
+  openMicroincrementModal(projectId: string) {
+    this.selectedProjectIdForMicroincrement = projectId;
+    this.mostrarMicroincrementModal = true;
+  }
+
+  closeMicroincrementModal(refresh: boolean) {
+    this.mostrarMicroincrementModal = false;
+    this.selectedProjectIdForMicroincrement = null;
+    if (refresh) {
+      // Potentially refresh data here if needed
+    }
   }
 
   private guardarProyectos() {

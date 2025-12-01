@@ -1,0 +1,27 @@
+<div class="modal">
+  <div class="modal-contenido">
+    <h2>Historial del Proyecto</h2>
+    
+    <div *ngIf="loadingHistory" class="loading">Cargando historial...</div>
+
+    <div *ngIf="history.length > 0 && !loadingHistory" class="history-list">
+      <div *ngFor="let entry of history" class="history-item">
+        <p><strong>Iteración:</strong> {{ entry.iteration }}</p>
+        <p><strong>Fecha de registro:</strong> {{ entry.creationDate | date: 'medium' }}</p>
+        <p><strong>Porcentaje completado:</strong> {{ entry.completionPercent }}%</p>
+        <p><strong>Observaciones:</strong> {{ entry.observations || 'N/A' }}</p>
+        <p><strong>Bloqueos:</strong> {{ entry.blockers || 'N/A' }}</p>
+        <p><strong>Versión:</strong> {{ entry.version }}</p>
+        <hr>
+      </div>
+    </div>
+
+    <div *ngIf="history.length === 0 && !loadingHistory" class="no-history">
+      <p>No hay historial de progreso para este proyecto.</p>
+    </div>
+    
+    <div class="botones-grupo">
+      <button type="button" class="btn-cancelar" (click)="close()">Cerrar</button>
+    </div>
+  </div>
+</div>

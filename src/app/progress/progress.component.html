@@ -1,0 +1,63 @@
+<div class="progress-container">
+  <h3>Resumen de Progreso</h3>
+  
+  <div *ngIf="loadingSummary" class="loading">Cargando resumen...</div>
+
+  <div *ngIf="summary && !loadingSummary" class="summary-grid">
+    <div class="summary-item">
+      <strong>Progreso Total</strong>
+      <p>{{ summary.totalCompletionPercent }}%</p>
+    </div>
+    <div class="summary-item">
+      <strong>Iteraciones</strong>
+      <p>{{ summary.iterationsCount }}</p>
+    </div>
+  </div>
+
+  <div *ngIf="summary?.progressByPhase && !loadingSummary" class="phases-summary">
+    <strong>Avance por Fase:</strong>
+    <div class="phases-grid">
+      <div *ngFor="let phase of objectKeys(summary?.progressByPhase || {})" class="phase-item">
+        <span>{{ phase }}:</span>
+        <span>{{ (summary?.progressByPhase?.[phase] || 0) }}%</span>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3>Iteraciones</h3>
+  <div class="iterations-header">
+    <button class="btn-nuevo" (click)="openIterationModalForCreation()">+ Nueva Iteración</button>
+    <button class="btn-historial" (click)="openHistoryModal()">Ver Historial</button>
+  </div>
+
+  <div *ngIf="loadingIterations" class="loading">Cargando iteraciones...</div>
+
+  <div *ngIf="iterations.length > 0 && !loadingIterations" class="iterations-list">
+    <table>
+      <thead>
+        <tr>
+          <th>Iteración</th>
+          <th>Fechas</th>
+          <th>Completado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let iteration of iterations">
+          <td>{{ iteration.iteration }}</td>
+          <td>{{ iteration.startDate }} - {{ iteration.endDate }}</td>
+          <td>{{ iteration.completionPercent }}%</td>
+          <td class="acciones">
+            <button class="btn-accion btn-ver" (click)="openIterationModalForEdit(iteration)">Ver/Editar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div *ngIf="iterations.length === 0 && !loadingIterations" class="sin-iteraciones">
+    <p>No hay iteraciones registradas.</p>
+  </div>
+
+</div>
