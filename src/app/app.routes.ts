@@ -4,6 +4,7 @@ import { ArtifactUploaderComponent } from './artifact-uploader/artifact-uploader
 import { ManageArtifactTypesComponent } from './manage-artifact-types/manage-artifact-types.component';
 import { MicroincrementListComponent } from './microincrement-list/microincrement-list.component';
 import { AssociateWorkflowsComponent } from './associate-workflows/associate-workflows.component';
+import { ManagePermissionsComponent } from './manage-permissions/manage-permissions.component';
 
 export const routes: Routes = [
     { path: 'microincrements', component: MicroincrementListComponent },
@@ -12,6 +13,7 @@ export const routes: Routes = [
 	{ path: 'artifacts/:projectId', component: ArtifactUploaderComponent },
 	{ path: 'artifact-types', component: ManageArtifactTypesComponent },
 	{ path: 'associate-workflows', component: AssociateWorkflowsComponent },
+	{ path: 'manage-permissions', component: ManagePermissionsComponent },
 	// fallback
 	{ path: '**', redirectTo: '' }
 ];

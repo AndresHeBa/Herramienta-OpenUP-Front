@@ -1,0 +1,70 @@
+<div class="manage-perms-root">
+  <h2>Gestión de Permisos (HU-013)</h2>
+
+  <div class="card">
+    <div class="card-header">
+      <strong>Matriz de permisos</strong>
+      <button class="primary" (click)="saveAll()" [disabled]="loading">Guardar</button>
+    </div>
+
+    <div *ngIf="loading" class="loading">Cargando...</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <form [formGroup]="form" class="matrix">
+      <table>
+        <thead>
+          <tr>
+            <th>Acción</th>
+            <th *ngFor="let r of roles">{{ r.displayName || r.name }}</th>
+            <th>Asignados</th>
+          </tr>
+        </thead>
+        <tbody formArrayName="entries">
+          <tr *ngFor="let e of entries.controls; let i = index" [formGroupName]="i">
+            <td>{{ e.value.action }}</td>
+            <td *ngFor="let r of roles">
+              <input type="checkbox" [checked]="(e.value.roles || []).indexOf(r.name) !== -1"
+                     (change)="toggleRole(i, r.name)" />
+            </td>
+            <td class="assigned">{{ assignedNames(e.value.roles) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </form>
+  </div>
+
+  <div class="card" style="margin-top:20px;">
+    <div class="card-header">
+      <strong>Roles</strong>
+      <button class="primary" *ngIf="!creatingRole" (click)="startCreateRole()">Nuevo rol</button>
+    </div>
+    <div *ngIf="roleCreationError" class="error">{{ roleCreationError }}</div>
+    <div *ngIf="creatingRole" class="role-form">
+      <label>Nombre<br>
+        <input [(ngModel)]="newRole.name" [ngModelOptions]="{standalone:true}" placeholder="author" />
+      </label>
+      <label>Nombre a mostrar<br>
+        <input [(ngModel)]="newRole.displayName" [ngModelOptions]="{standalone:true}" placeholder="Autor" />
+      </label>
+      <label>Descripción<br>
+        <textarea [(ngModel)]="newRole.description" [ngModelOptions]="{standalone:true}" rows="2" placeholder="Descripción breve"></textarea>
+      </label>
+      <div class="actions">
+        <button class="primary" (click)="submitCreateRole()">Crear</button>
+        <button type="button" (click)="cancelCreateRole()">Cancelar</button>
+      </div>
+    </div>
+    <table class="roles-table" *ngIf="roles.length">
+      <thead>
+        <tr><th>Nombre</th><th>Mostrar</th><th>Descripción</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of roles">
+          <td>{{ r.name }}</td>
+          <td>{{ r.displayName || '-' }}</td>
+          <td>{{ r.description || '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

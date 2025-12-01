@@ -1,0 +1,23 @@
+.manage-perms-root { padding: 18px; background: #f3f4f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.manage-perms-root > h2 { margin: 0 0 12px 0; background: linear-gradient(180deg,#0f1724,#0b1220); color: white; padding: 14px; border-radius: 8px; box-shadow: 0 6px 18px rgba(2,6,23,0.25); }
+.card { background: white; border-radius: 8px; padding: 12px; box-shadow: 0 3px 10px rgba(2,6,23,0.04); margin-top: 12px; }
+.card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px; }
+.card-header .primary { background:#2563eb; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
+.matrix table { width:100%; border-collapse: collapse; }
+.matrix th, .matrix td { padding: 10px; border-bottom: 1px solid #eef2f7; text-align:left; }
+.matrix thead th { background:#f8fafc; font-weight:600; }
+.loading { padding: 8px; color:#374151; }
+.error { padding: 8px; color:#dc2626; font-weight:600; }
+.role-form { display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); margin-bottom: 12px; }
+.role-form label input, .role-form textarea { width:100%; padding:8px 10px; border:1px solid #e6edf6; border-radius:6px; background:#fbfdff; }
+.role-form .actions { display:flex; gap:10px; }
+.roles-table { width:100%; border-collapse: collapse; margin-top: 8px; }
+.roles-table th, .roles-table td { padding:8px 10px; border-bottom:1px solid #eef2f7; text-align:left; }
+.roles-table thead th { background:#f8fafc; font-weight:600; }
+
+@media (max-width:800px) {
+  .matrix table, .matrix thead, .matrix tbody, .matrix th, .matrix td, .matrix tr { display:block; }
+  .matrix thead { display:none; }
+  .matrix tr { margin-bottom: 12px; }
+  .matrix td { border: none; padding: 6px 0; }
+}
