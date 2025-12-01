@@ -56,15 +56,31 @@
     </div>
     <table class="roles-table" *ngIf="roles.length">
       <thead>
-        <tr><th>Nombre</th><th>Mostrar</th><th>Descripción</th></tr>
+        <tr><th>Nombre</th><th>Mostrar</th><th>Descripción</th><th>Acciones</th></tr>
       </thead>
       <tbody>
         <tr *ngFor="let r of roles">
           <td>{{ r.name }}</td>
-          <td>{{ r.displayName || '-' }}</td>
-          <td>{{ r.description || '-' }}</td>
+          <td *ngIf="editingRoleName !== r.name">{{ r.displayName || '-' }}</td>
+          <td *ngIf="editingRoleName === r.name">
+            <input [(ngModel)]="editingRole.displayName" [ngModelOptions]="{standalone:true}" placeholder="Nombre a mostrar" />
+          </td>
+          <td *ngIf="editingRoleName !== r.name">{{ r.description || '-' }}</td>
+          <td *ngIf="editingRoleName === r.name">
+            <input [(ngModel)]="editingRole.description" [ngModelOptions]="{standalone:true}" placeholder="Descripción" />
+          </td>
+          <td>
+            <ng-container *ngIf="editingRoleName !== r.name; else editActions">
+              <button type="button" (click)="startEditRole(r)">Editar</button>
+            </ng-container>
+            <ng-template #editActions>
+              <button class="primary" type="button" (click)="submitEditRole()">Guardar</button>
+              <button type="button" (click)="cancelEditRole()">Cancelar</button>
+            </ng-template>
+          </td>
         </tr>
       </tbody>
     </table>
+    <div *ngIf="roleEditError" class="error">{{ roleEditError }}</div>
   </div>
 </div>

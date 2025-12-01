@@ -15,4 +15,5 @@ export class PermissionsService {
   getRoles(): Observable<any> { return this.http.get(`${this.base}/roles`); }
   createRole(role: any): Observable<any> { return this.http.post(`${this.base}/roles`, role); }
   deleteRole(name: string): Observable<any> { return this.http.delete(`${this.base}/roles/${name}`); }
+  updateRole(name: string, role: any): Observable<any> { return this.http.patch(`${this.base}/roles/${name}`, role); }
 }

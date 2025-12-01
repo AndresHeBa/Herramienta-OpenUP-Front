@@ -39,6 +39,11 @@ export class ManagePermissionsComponent implements OnInit {
   creatingRole = false;
   roleCreationError: string | null = null;
 
+  // Edición de rol existente
+  editingRoleName: string | null = null;
+  editingRole: { displayName: string; description: string } = { displayName: '', description: '' };
+  roleEditError: string | null = null;
+
   form: FormGroup;
 
   constructor(private ps: PermissionsService, private fb: FormBuilder) {
@@ -97,6 +102,28 @@ export class ManagePermissionsComponent implements OnInit {
       this.creatingRole = false;
     }, err => {
       this.roleCreationError = 'Error al crear rol';
+    });
+  }
+
+  startEditRole(role: any) {
+    this.editingRoleName = role?.name || null;
+    this.editingRole = { displayName: role?.displayName || '', description: role?.description || '' };
+    this.roleEditError = null;
+  }
+
+  cancelEditRole() {
+    this.editingRoleName = null;
+    this.roleEditError = null;
+  }
+
+  submitEditRole() {
+    if (!this.editingRoleName) return;
+    const payload = { displayName: this.editingRole.displayName, description: this.editingRole.description };
+    this.ps.updateRole(this.editingRoleName, payload).subscribe(res => {
+      this.loadRoles();
+      this.editingRoleName = null;
+    }, err => {
+      this.roleEditError = 'Error al actualizar rol';
     });
   }
 

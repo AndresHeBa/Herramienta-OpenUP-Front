@@ -14,6 +14,7 @@
 .roles-table { width:100%; border-collapse: collapse; margin-top: 8px; }
 .roles-table th, .roles-table td { padding:8px 10px; border-bottom:1px solid #eef2f7; text-align:left; }
 .roles-table thead th { background:#f8fafc; font-weight:600; }
+.roles-table input { width: 100%; padding: 6px 8px; border: 1px solid #e5e7eb; border-radius: 6px; }
 
 @media (max-width:800px) {
   .matrix table, .matrix thead, .matrix tbody, .matrix th, .matrix td, .matrix tr { display:block; }
