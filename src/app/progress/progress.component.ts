@@ -17,8 +17,8 @@ export class ProgressComponent implements OnInit {
   @Output() editIteration = new EventEmitter<Iteration>();
   @Output() viewHistory = new EventEmitter<void>();
 
-  summary: ProgressSummary | null = null;
   iterations: Iteration[] = [];
+  summary: ProgressSummary | null = null;
   loadingSummary = true;
   loadingIterations = true;
 
@@ -47,9 +47,11 @@ export class ProgressComponent implements OnInit {
 
   loadIterations() {
     this.loadingIterations = true;
-    this.mainService.getProgress(this.projectId).subscribe({
+    this.mainService.getIteraciones(this.projectId).subscribe({
       next: (response) => {
-        this.iterations = response.Result;
+        console.log(response);
+        this.iterations =Array.isArray(response.data)? response.data: [];
+        console.log(this.iterations.length)
         this.loadingIterations = false;
       },
       error: (error) => {

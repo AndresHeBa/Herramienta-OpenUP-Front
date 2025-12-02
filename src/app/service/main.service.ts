@@ -8,6 +8,7 @@ export const _IP = 'http://localhost:6002/';
 export const API_URL = _IP + 'api/project';
 export const API_URL_PROGRESS = _IP + 'api/progress';
 export const API_URL_MICROINCREMENT = _IP + 'api/microincrement';
+export const API_URL_ITERACION = _IP + 'api/iteracion';
 
 const httpOptions = {
   headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
@@ -23,6 +24,10 @@ export class MainService {
 
   getProject(strProjectId: string) {
     return this.http.get<any>(`${API_URL}/getProject/${strProjectId}`);
+  }
+
+  getProjects(){
+    return this.http.get<any>(`${API_URL}/getProjectList`);
   }
 
   postproyect(
@@ -93,5 +98,84 @@ export class MainService {
     }
     return this.http.get<any>(`${API_URL_MICROINCREMENT}/getMicroincrementList`, { params });
   }
-}
 
+  // ==================== ITERACIONES CRUD ====================
+  
+  // CREATE - Crear nueva iteración
+  postIteracion(
+    projectId: string, 
+    name: string, 
+    startDate: string, 
+    finallyDate: string, 
+    goal: string, 
+    phase: string, 
+    active: boolean,
+    tasks?: any[],
+    blockers?: string,
+    observations?: string
+  ) {
+    const body = {
+      "projectIdentifier": projectId,
+      "name": name,
+      "startDate": startDate,
+      "finallyDate": finallyDate,
+      "goal": goal,
+      "phase": phase,
+      "active": active,
+      "tasks": tasks || [],
+      "blockers": blockers || "",
+      "observations": observations || ""
+    };
+    return this.http.post<any>(`${API_URL_ITERACION}/postInteracion`, body, httpOptions);
+  }
+
+  // READ - Obtener todas las iteraciones de un proyecto
+  getIteraciones(projectId: string) {
+    return this.http.get<any>(`${API_URL_ITERACION}/getIteraciones/${projectId}`);
+  }
+
+  // READ - Obtener una iteración específica
+  getIteracion(projectId: string, iterationName: string) {
+    return this.http.get<any>(`${API_URL_ITERACION}/getIteracion/${projectId}/${iterationName}`);
+  }
+
+  // UPDATE - Actualizar iteración completa
+  putIteracion(
+    projectId: string, 
+    iterationName: string, 
+    updates: {
+      startDate?: string;
+      finallyDate?: string;
+      goal?: string;
+      phase?: string;
+      active?: boolean;
+      tasks?: any[];
+      blockers?: string;
+      observations?: string;
+    }
+  ) {
+    return this.http.put<any>(
+      `${API_URL_ITERACION}/putIteracion/${projectId}/${iterationName}`, 
+      updates, 
+      httpOptions
+    );
+  }
+
+  // UPDATE - Actualizar solo progreso de tareas
+  updateIterationProgress(projectId: string, iterationName: string, tasks: any[]) {
+    const body = { tasks };
+    return this.http.patch<any>(
+      `${API_URL_ITERACION}/updateProgress/${projectId}/${iterationName}`, 
+      body, 
+      httpOptions
+    );
+  }
+
+  // DELETE - Eliminar iteración
+  deleteIteracion(projectId: string, iterationName: string) {
+    return this.http.delete<any>(
+      `${API_URL_ITERACION}/deleteIteracion/${projectId}/${iterationName}`, 
+      httpOptions
+    );
+  }
+}

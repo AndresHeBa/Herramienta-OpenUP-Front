@@ -1,562 +1,494 @@
-/* Reset básico general */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-:host {
-    display: block;
-    background: #f5f6fa;
-    color: #333;
-    padding: 20px;
-}
-
-/* Header */
-.header {
-    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-    color: white;
-    padding: 20px;
-    border-radius: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-}
-
-.header h1 {
-    font-size: 1.8rem;
-    font-weight: 600;
-}
-
-.btn-nuevo {
-    background: #3b82f6;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    color: #fff;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.btn-nuevo:hover {
-    background: #2563eb;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-}
-
-/* Formulario */
-.form-section {
-    background: #ffffff;
-    padding: 25px;
-    margin: 20px 0;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-    max-height: 800px;
-    overflow: hidden;
-}
-
-.form-section.hidden {
-    display: none;
-}
-
-.form-section h2 {
-    margin-bottom: 20px;
-    color: #1f2937;
-    font-size: 1.5rem;
-}
-
-.form-section form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 15px;
-}
-
-.form-section label {
-    display: flex;
-    flex-direction: column;
-    font-weight: 600;
-    color: #374151;
-}
-
-.form-section input,
-.form-section textarea,
-.form-section select {
-    margin-top: 8px;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #d1d5db;
-    background: #f9fafb;
-    transition: all 0.2s ease;
-    font-size: 0.95rem;
-}
-
-.form-section input:focus,
-.form-section textarea:focus,
-.form-section select:focus {
-    border-color: #3b82f6;
-    background: #fff;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.form-section textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-.form-section .botones-grupo {
-    grid-column: 1 / -1;
-    display: flex;
-    gap: 10px;
-    justify-content: flex-start;
-}
-
-.form-section button[type="submit"] {
-    padding: 10px 20px;
-    background: #10b981;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.form-section button[type="submit"]:hover {
-    background: #059669;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-}
-
-.btn-cancelar {
-    background: #ef4444 !important;
-    padding: 10px 20px !important;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.btn-cancelar:hover {
-    background: #dc2626 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-}
-
-/* Tabla */
-.tabla-container {
-    margin-top: 30px;
-    background: #ffffff;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-}
-
-.tabla-container h2 {
-    margin-bottom: 20px;
-    color: #1f2937;
-    font-size: 1.5rem;
-}
-
-.sin-proyectos {
-    text-align: center;
-    padding: 40px;
-    color: #6b7280;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    overflow: hidden;
-}
-
-thead {
-    background: #1f2937;
-    color: white;
-}
-
-thead th {
-    padding: 12px;
-    font-weight: 600;
-    text-align: left;
-    font-size: 0.95rem;
-}
-
-tbody tr {
-    border-bottom: 1px solid #e5e7eb;
-    transition: background-color 0.2s ease;
-}
-
-tbody tr:hover {
-    background: #f9fafb;
-}
-
-tbody tr:nth-child(even) {
-    background: #f3f4f6;
-}
-
-tbody tr:nth-child(even):hover {
-    background: #eff2f5;
-}
-
-tbody td {
-    padding: 12px;
-    font-size: 0.95rem;
-}
-
-.estado-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    background: #d1fae5;
-    color: #065f46;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.acciones {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-}
-
-/* Botones de acción */
-.btn-accion {
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.85rem;
-    font-weight: 500;
-}
-
-.btn-ver {
-    background: #3b82f6;
-}
-
-.btn-ver:hover {
-    background: #2563eb;
-    transform: translateY(-2px);
-}
-
-.btn-editar {
-    background: #f59e0b;
-}
-
-.btn-editar:hover {
-    background: #d97706;
-    transform: translateY(-2px);
-}
-
-.btn-eliminar {
-    background: #ef4444;
-}
-
-.btn-eliminar:hover {
-    background: #dc2626;
-    transform: translateY(-2px);
-}
-
-.btn-archivar {
-  background: #10b981;
-}
-
-.btn-archivar:hover {
-  background: #059669;
-  transform: translateY(-2px);
-}
-
-/* Modal de detalles */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    z-index: 1000;
-}
-
-.modal.visible {
-    opacity: 1;
-    visibility: visible;
-}
-
-.modal-contenido {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    position: relative;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-}
-
-.btn-cerrar {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: none;
-    border: none;
-    font-size: 28px;
-    cursor: pointer;
-    color: #6b7280;
-    transition: color 0.2s ease;
-}
-
-.btn-cerrar:hover {
-    color: #1f2937;
-}
-
-.modal-contenido h2 {
-    margin-bottom: 20px;
-    color: #1f2937;
-    font-size: 1.6rem;
-}
-
-.modal-contenido h3 {
-    margin: 15px 0 10px 0;
-    color: #374151;
-    font-size: 1.1rem;
-}
-
-.detalle-seccion {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.detalle-seccion:last-child {
-    border-bottom: none;
-}
-
-.detalle-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    margin-top: 10px;
-}
-
-.detalle-item strong {
-    display: block;
-    color: #6b7280;
-    font-size: 0.85rem;
-    margin-bottom: 5px;
-}
-
-.detalle-item p {
-    color: #1f2937;
-    font-weight: 500;
-}
-
-.tags-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.tag {
-    display: inline-block;
-    background: #dbeafe;
-    color: #1e40af;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 500;
-}
-
-.fases-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.fase-item {
-    padding: 15px;
-    background: #f3f4f6;
-    border-radius: 8px;
-    text-align: center;
-    border-left: 4px solid #3b82f6;
-}
-
-.fase-nombre {
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 5px;
-}
-
-.fase-estado {
-    font-size: 0.85rem;
-    color: #6b7280;
-    background: #e5e7eb;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
-.btn-cerrar-modal {
-    width: 100%;
-    margin-top: 20px;
-    padding: 10px;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.btn-cerrar-modal:hover {
-    background: #2563eb;
-}
-
-/* Footer */
-.footer {
-    margin-top: 40px;
-    text-align: center;
-    padding: 15px;
-    color: #6b7280;
-    font-size: 0.9rem;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-    .header {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
-    }
-
-    .form-section form {
-        grid-template-columns: 1fr;
-    }
-
-    .form-section .botones-grupo {
-        flex-direction: column;
-    }
-
-    .detalle-grid {
-        grid-template-columns: 1fr;
-    }
-
-    table {
-        font-size: 0.85rem;
-    }
-
-    .acciones {
-        flex-direction: column;
-    }
-
-    .btn-accion {
-        width: 100%;
-    }
-}
-
-/* --- Estilos para la Sección del Plan de Proyecto --- */
-.fase-item {
-  padding: 15px;
-  background: #f3f4f6;
+/* ==================== SECCIÓN DE ITERACIONES ==================== */
+
+.iterations-section {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: #fff;
   border-radius: 8px;
-  border-left: 4px solid #3b82f6;
-  display: flex; /* Cambiado a flex */
-  flex-direction: column; /* Apilar hijos verticalmente */
-  gap: 15px; /* Espacio entre el header y el contenido del plan */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-.fase-header {
+
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e0e0e0;
 }
-.plan-seccion {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #e5e7eb;
+
+.section-header h2 {
+  margin: 0;
+  color: #333;
 }
-.btn-crear-plan {
-  background: #10b981;
+
+/* ==================== LISTA DE ITERACIONES ==================== */
+
+.iterations-list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.iteration-card {
+  padding: 1.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fafafa;
+  transition: box-shadow 0.3s;
+}
+
+.iteration-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.iteration-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.iteration-header h3 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #95a5a6;
   color: white;
-  border: none;
-  padding: 8px 15px;
+}
+
+.status-badge.active {
+  background: #27ae60;
+}
+
+.iteration-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.iteration-info p {
+  margin: 0;
+  color: #555;
+}
+
+/* ==================== BARRA DE PROGRESO ==================== */
+
+.progress-bar {
+  width: 100%;
+  height: 24px;
+  background: #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 1rem 0;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: width 0.3s ease;
+}
+
+/* ==================== TAREAS ==================== */
+
+.tasks-list {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: white;
   border-radius: 6px;
+}
+
+.tasks-list h4 {
+  margin: 0 0 0.75rem 0;
+  color: #34495e;
+}
+
+.tasks-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tasks-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.tasks-list li:last-child {
+  border-bottom: none;
+}
+
+.tasks-list li input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
 }
-.btn-crear-plan:hover {
-  background: #059669;
-  transform: translateY(-1px);
+
+.tasks-list li span {
+  flex: 1;
+  color: #2c3e50;
 }
-.plan-detalle {
-  background: #eef2ff;
-  padding: 15px;
+
+.tasks-list li span.completed {
+  text-decoration: line-through;
+  color: #95a5a6;
+}
+
+/* ==================== BLOQUEOS Y OBSERVACIONES ==================== */
+
+.blockers, .observations {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: white;
   border-radius: 6px;
-  border-left: 3px solid #6366f1;
+  border-left: 4px solid #e74c3c;
 }
-.plan-detalle h4 {
-  margin-bottom: 10px;
-  color: #4338ca;
+
+.observations {
+  border-left-color: #3498db;
 }
-.plan-detalle p {
-  margin-bottom: 5px;
-  font-size: 0.9rem;
+
+.blockers h4, .observations h4 {
+  margin: 0 0 0.5rem 0;
+  color: #34495e;
+}
+
+.blockers p, .observations p {
+  margin: 0;
+  color: #555;
   line-height: 1.5;
 }
-.plan-detalle p strong {
-  color: #4f46e5;
-}
-.plan-form-container {
-  padding: 20px;
-  background: #f9fafb;
-  border-radius: 8px;
-  margin-top: 10px;
-  border: 1px solid #e5e7eb;
-}
-.plan-form-container h4 {
-  margin-bottom: 15px;
-}
-.plan-form-container form {
+
+/* ==================== ACCIONES ==================== */
+
+.iteration-actions {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
 }
-.plan-form-container label {
-  display: flex;
-  flex-direction: column;
+
+/* ==================== MENSAJE SIN ITERACIONES ==================== */
+
+.no-iterations {
+  text-align: center;
+  padding: 3rem;
+  color: #7f8c8d;
+}
+
+.no-iterations p {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+/* ==================== BOTONES ==================== */
+
+.btn-primary {
+  padding: 0.6rem 1.2rem;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
   font-weight: 600;
-  font-size: 0.9rem;
-  color: #374151;
+  transition: background 0.3s;
 }
-.plan-form-container input,
-.plan-form-container textarea {
-  margin-top: 5px;
-  padding: 8px;
-  border-radius: 5px;
-  border: 1px solid #d1d5db;
-  font-size: 0.9rem;
+
+.btn-primary:hover {
+  background: #2980b9;
 }
-.plan-form-container textarea {
-  min-height: 60px;
-  resize: vertical;
+
+.btn-edit {
+  padding: 0.5rem 1rem;
+  background: #f39c12;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.btn-edit:hover {
+  background: #e67e22;
+}
+
+.btn-delete {
+  padding: 0.5rem 1rem;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.btn-delete:hover {
+  background: #c0392b;
+}
+
+/* ==================== MODAL ==================== */
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s;
+}
+
+.modal-contenido {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  animation: slideUp 0.3s;
+}
+
+.modal-contenido h2 {
+  margin-top: 0;
+  color: #2c3e50;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 0.5rem;
+}
+
+.modal.visible {
+  display: flex;
+}
+
+/* Asegurar que los modales hijo (iteration-modal, history-modal, etc.) 
+   tengan z-index mayor y estén en el nivel correcto del DOM */
+::ng-deep app-iteration-modal .modal,
+::ng-deep app-history-modal .modal,
+::ng-deep app-microincrement-modal .modal {
+  z-index: 2000 !important;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* ==================== FORMULARIO ==================== */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: block;
+  color: #34495e;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="number"],
+textarea {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+input[readonly] {
+  background: #ecf0f1;
+  cursor: not-allowed;
+}
+
+/* ==================== TAREAS EN MODAL ==================== */
+
+.tasks-section {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.tasks-section h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.task-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.task-item input[type="text"] {
+  flex: 1;
+  margin: 0;
+}
+
+.btn-eliminar-task {
+  width: 32px;
+  height: 32px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+  transition: background 0.3s;
+}
+
+.btn-eliminar-task:hover {
+  background: #c0392b;
+}
+
+.btn-nueva-task {
+  padding: 0.6rem 1rem;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.btn-nueva-task:hover {
+  background: #229954;
+}
+
+/* ==================== BOTONES DEL MODAL ==================== */
+
+.botones-grupo {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e0e0e0;
+}
+
+.botones-grupo button[type="submit"] {
+  padding: 0.7rem 1.5rem;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+.botones-grupo button[type="submit"]:hover:not(:disabled) {
+  background: #229954;
+}
+
+.botones-grupo button[type="submit"]:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+}
+
+.btn-cancelar {
+  padding: 0.7rem 1.5rem;
+  background: #95a5a6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+.btn-cancelar:hover {
+  background: #7f8c8d;
+}
+
+/* ==================== ANIMACIONES ==================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .iteration-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .modal-contenido {
+    width: 95%;
+    padding: 1.5rem;
+  }
 }

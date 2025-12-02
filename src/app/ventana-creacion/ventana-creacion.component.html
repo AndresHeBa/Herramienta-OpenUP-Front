@@ -55,7 +55,7 @@
         </thead>
         <tbody>
             <tr *ngFor="let proyecto of proyectos">
-                <td>{{ proyecto.nombre }}</td>
+                <td>{{ proyecto.name }}</td>
                 <td>{{ proyecto.identificador }}</td>
                 <td>{{ proyecto.fechaInicio }}</td>
                 <td><span class="estado-badge">{{ proyecto.estado }}</span></td>
@@ -63,13 +63,13 @@
                 <td>{{ proyecto.descripcion || '-' }}</td>
                 <td>{{ proyecto.tags || '-' }}</td>
                 <td class="acciones">
-                    <button class="btn-accion btn-ver" (click)="verDetalles(proyecto.id)"
+                    <button class="btn-accion btn-ver" (click)="verDetalles(proyecto._id)"
                         title="Ver detalles">Ver</button>
-                    <button class="btn-accion btn-editar" (click)="editarProyecto(proyecto.id)"
+                    <button class="btn-accion btn-editar" (click)="editarProyecto(proyecto._id)"
                         title="Editar proyecto">Editar</button>
-                    <button class="btn-accion btn-eliminar" (click)="eliminarProyecto(proyecto.id)"
+                    <button class="btn-accion btn-eliminar" (click)="eliminarProyecto(proyecto._id)"
                         title="Eliminar proyecto">Eliminar</button>
-                    <button class="btn-accion btn-archivar" (click)="archivarProyecto(proyecto.id)"
+                    <button class="btn-accion btn-archivar" (click)="archivarProyecto(proyecto._id)"
                         title="Archivar proyecto">Archivar</button>
                 </td>
             </tr>
@@ -81,7 +81,7 @@
 <div class="modal" [class.visible]="mostrarDetalle" *ngIf="detalleProyecto">
     <div class="modal-contenido">
         <button class="btn-cerrar" (click)="cerrarDetalle()">×</button>
-        <h2>{{ detalleProyecto.nombre }}</h2>
+        <h2>{{ detalleProyecto.name }}</h2>
 
         <div class="detalle-seccion">
             <h3>Información General</h3>
@@ -113,7 +113,7 @@
         <div class="detalle-seccion">
             <strong>Tags:</strong>
             <div class="tags-list">
-                <span *ngFor="let tag of (detalleProyecto.tags ? detalleProyecto.tags.split(',') : [])" class="tag">
+                <span *ngFor="let tag of detalleProyecto.tags" class="tag">
                     {{ tag.trim() }}
                 </span>
             </div>
@@ -122,27 +122,27 @@
         <!-- Progress Component -->
         <div class="detalle-seccion">
             <app-progress 
-                [projectId]="detalleProyecto.id"
-                (newIteration)="openIterationModal(null)"
+                [projectId]="detalleProyecto._id"
+                (newIteration)="openCreateIterationModal()"
                 (editIteration)="openIterationModal($event)"
                 (viewHistory)="openHistoryModal()"
             ></app-progress>
             <div class="action-buttons-for-micros">
-              <button class="btn-accion btn-ver" (click)="openMicroincrementModal(detalleProyecto.id)" title="Ver Microincrementos">Ver Microincrementos</button>
+              <button class="btn-accion btn-ver" (click)="openMicroincrementModal(detalleProyecto._id)" title="Ver Microincrementos">Ver Microincrementos</button>
             </div>
         </div>
 
         <div class="detalle-seccion">
             <h3>Fases del Proyecto</h3>
             <div class="fases-list">
-                <div *ngFor="let fase of detalleProyecto.fases" class="fase-item">
+                <div *ngFor="let fase of detalleProyecto.phases" class="fase-item">
                     <div class="fase-header">
-                        <div class="fase-nombre">{{ fase.nombre }}</div>
-                        <div class="fase-estado">{{ fase.estado }}</div>
+                        <div class="fase-nombre">{{ fase.name }}</div>
+                        <div class="fase-estado">{{ fase.status }}</div>
                     </div>
 
                     <!-- Lógica específica para la Fase de Incepción -->
-                    <div *ngIf="fase.nombre === 'Incepción'" class="plan-seccion">
+                    <div *ngIf="fase.name === 'Incepción'" class="plan-seccion">
 
                         <!-- 1. Mostrar el plan si ya existe -->
                         <div *ngIf="fase.plan" class="plan-detalle">
@@ -201,18 +201,19 @@
     </div>
 </div>
 
-<!-- Iteration Modal -->
+
+<!-- Modal iterations -->
 <app-iteration-modal 
-    *ngIf="mostrarIterationModal && detalleProyecto"
-    [projectId]="detalleProyecto.id"
-    [iteration]="selectedIteration"
-    (closeModal)="closeIterationModal($event)"
+  *ngIf="mostrarIterationModal && detalleProyecto"
+  [projectId]="detalleProyecto._id"
+  [iteration]="selectedIteration"
+  (closeModal)="closeIterationModal($event)"
 ></app-iteration-modal>
 
 <!-- History Modal -->
 <app-history-modal
     *ngIf="mostrarHistoryModal && detalleProyecto"
-    [projectId]="detalleProyecto.id"
+    [projectId]="detalleProyecto._id"
     (closeModal)="closeHistoryModal()"
 ></app-history-modal>
 

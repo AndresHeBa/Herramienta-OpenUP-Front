@@ -8,18 +8,18 @@ import { ProjectPlan } from '../models/project-plan.model';
 import { ProgressComponent } from '../progress/progress.component';
 import { IterationModalComponent } from '../iteration-modal/iteration-modal.component';
 import { HistoryModalComponent } from '../history-modal/history-modal.component';
-import { MicroincrementModalComponent } from '../microincrement-modal/microincrement-modal.component'; // Import the new modal
+import { MicroincrementModalComponent } from '../microincrement-modal/microincrement-modal.component';
 import { Iteration } from '../models/iteration.model';
 
 interface Fase {
-  nombre: string;
-  estado: string;
+  name: string;
+  status: string;
   plan?: ProjectPlan;
 }
 
 interface Proyecto {
-  id: string;
-  nombre: string;
+  _id: string;
+  name: string;
   identificador: string;
   fechaInicio: string;
   responsable: string;
@@ -27,7 +27,8 @@ interface Proyecto {
   tags: string;
   activo: boolean;
   estado: string;
-  fases: Fase[];
+  phases: Fase[];
+  iterations?: Iteration[];
 }
 
 @Component({
@@ -48,15 +49,22 @@ export class VentanaCreacionComponent implements OnInit {
   mostrandoFormularioPlan = false;
   faseActualParaPlan: Fase | null = null;
 
-  mostrarIterationModal = false;
-  selectedIteration: Iteration | null = null;
+  // Variables para iteraciones
+  mostrarIterationModal: boolean = false;
+  selectedIteration: Iteration | any = null;
+  iteraciones: Iteration[] = [];
 
   mostrarHistoryModal = false;
 
-  mostrarMicroincrementModal = false; // New flag for Microincrement modal
-  selectedProjectIdForMicroincrement: string | null = null; // To pass projectId to the modal
+  mostrarMicroincrementModal = false;
+  selectedProjectIdForMicroincrement: string | null = null;
 
-  constructor(private mainService: MainService, private fb: FormBuilder, public activeProject: ActiveProjectService, private router: Router) { }
+  constructor(
+    private mainService: MainService, 
+    private fb: FormBuilder, 
+    public activeProject: ActiveProjectService, 
+    private router: Router
+  ) { }
 
   formData = {
     nombre: '',
@@ -75,11 +83,15 @@ export class VentanaCreacionComponent implements OnInit {
   ];
 
   ngOnInit() {
-    // Cargar proyectos desde localStorage si existen
-    const proyectosGuardados = localStorage.getItem('proyectos');
-    if (proyectosGuardados) {
-      this.proyectos = JSON.parse(proyectosGuardados);
-    }
+    this.mainService.getProjects().subscribe({
+      next: (response: any) => {
+        console.log('Proyectos leidos', response.Result.listResult);
+        this.proyectos = response.Result.listResult;
+      },
+      error: (err) => {
+        console.log('Error al traer proyectos', err);
+      },
+    });
 
     this.projectPlanForm = this.fb.group({
       objetivos: ['', Validators.required],
@@ -104,8 +116,8 @@ export class VentanaCreacionComponent implements OnInit {
     }
 
     const nuevoProyecto: Proyecto = {
-      id: Date.now().toString(),
-      nombre: this.formData.nombre,
+      _id: Date.now().toString(),
+      name: this.formData.nombre,
       identificador: this.formData.identificador,
       fechaInicio: this.formData.fechaInicio,
       responsable: this.formData.responsable,
@@ -113,12 +125,11 @@ export class VentanaCreacionComponent implements OnInit {
       tags: this.formData.tags,
       estado: 'Creado',
       activo: true,
-      fases: JSON.parse(JSON.stringify(this.fasesPredeterminadas))
+      phases: JSON.parse(JSON.stringify(this.fasesPredeterminadas))
     };
 
-    //mandar a la API
     this.mainService.postproyect(
-      nuevoProyecto.nombre,
+      nuevoProyecto.name,
       nuevoProyecto.identificador,
       nuevoProyecto.fechaInicio,
       nuevoProyecto.descripcion,
@@ -143,11 +154,11 @@ export class VentanaCreacionComponent implements OnInit {
 
   guardarProyecto() {
     if (this.editandoId) {
-      const index = this.proyectos.findIndex(p => p.id === this.editandoId);
+      const index = this.proyectos.findIndex(p => p._id === this.editandoId);
       if (index !== -1) {
         this.proyectos[index] = {
           ...this.proyectos[index],
-          nombre: this.formData.nombre,
+          name: this.formData.nombre,
           identificador: this.formData.identificador,
           fechaInicio: this.formData.fechaInicio,
           responsable: this.formData.responsable,
@@ -165,10 +176,10 @@ export class VentanaCreacionComponent implements OnInit {
   }
 
   editarProyecto(id: string) {
-    const proyecto = this.proyectos.find(p => p.id === id);
+    const proyecto = this.proyectos.find(p => p._id === id);
     if (proyecto) {
       this.formData = {
-        nombre: proyecto.nombre,
+        nombre: proyecto.name,
         identificador: proyecto.identificador,
         fechaInicio: proyecto.fechaInicio,
         responsable: proyecto.responsable,
@@ -181,29 +192,41 @@ export class VentanaCreacionComponent implements OnInit {
   }
 
   verDetalles(id: string) {
-    this.detalleProyecto = this.proyectos.find(p => p.id === id) || null;
+    this.detalleProyecto = this.proyectos.find(p => p._id === id) || null;
     this.mostrarDetalle = true;
+    console.log(this.detalleProyecto)
+    
+    // Cargar iteraciones cuando se abre el detalle
+    if (this.detalleProyecto) {
+      this.loadIterations();
+    }
   }
 
   cerrarDetalle() {
     this.mostrarDetalle = false;
     this.detalleProyecto = null;
+    this.iteraciones = [];
     this.cancelarCreacionPlan();
   }
 
   openArtifacts(projectIdentifier: string) {
     this.activeProject.setActiveProject(projectIdentifier);
-    // close modal and navigate to artifacts view for project
     this.cerrarDetalle();
-    // navigate with projectId param
     this.router.navigate(['/artifacts', projectIdentifier]);
   }
 
   eliminarProyecto(id: string) {
     if (confirm('¿Estás seguro de que deseas eliminar este proyecto?')) {
-      this.proyectos = this.proyectos.filter(p => p.id !== id);
+      this.proyectos = this.proyectos.filter(p => p._id !== id);
       this.guardarProyectos();
     }
+  }
+
+  getTagsArray(tags: string | null | undefined): string[] {
+    if (!tags || typeof tags !== 'string') {
+      return [];
+    }
+    return tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
   }
 
   archivarProyecto(id: string) {
@@ -211,7 +234,7 @@ export class VentanaCreacionComponent implements OnInit {
       this.mainService.deactivateProject(id).subscribe({
         next: (response) => {
           console.log('Proyecto archivado en la API:', response);
-          const proyecto = this.proyectos.find(p => p.id === id);
+          const proyecto = this.proyectos.find(p => p._id === id);
           if (proyecto) {
             proyecto.activo = false;
             proyecto.estado = 'Archivado';
@@ -246,7 +269,7 @@ export class VentanaCreacionComponent implements OnInit {
       ...this.projectPlanForm.value,
       version: 1,
       fecha: new Date(),
-      fase: this.faseActualParaPlan.nombre,
+      fase: this.faseActualParaPlan.name,
     };
 
     this.faseActualParaPlan.plan = nuevoPlan;
@@ -254,20 +277,90 @@ export class VentanaCreacionComponent implements OnInit {
     this.cancelarCreacionPlan();
   }
 
+  // ==================== MÉTODOS DE ITERACIONES ====================
+
+  // Cargar todas las iteraciones del proyecto
+  loadIterations() {
+    if (!this.detalleProyecto?._id) return;
+
+    this.mainService.getIteraciones(this.detalleProyecto._id).subscribe({
+      next: (response) => {
+        this.iteraciones = Array.isArray(response.data)? response.data: [];
+        console.log(response.data)
+      },
+      error: (err) => {
+        console.error('Error cargando iteraciones', err);
+        this.iteraciones = [];
+      }
+    });
+  }
+
+  // Abrir modal para CREAR nueva iteración
+  openCreateIterationModal() {
+    this.selectedIteration = null;
+    this.mostrarIterationModal = true;
+  }
+
+  // Abrir modal para EDITAR iteración existente
+  openEditIterationModal(iteration: Iteration) {
+    this.selectedIteration = { ...iteration }; // Clonar para evitar mutación directa
+    this.mostrarIterationModal = true;
+  }
+
   openIterationModal(iteration: Iteration | null) {
     this.selectedIteration = iteration;
     this.mostrarIterationModal = true;
   }
 
-  closeIterationModal(refresh: boolean) {
+  // Cerrar modal y recargar datos si es necesario
+  closeIterationModal(reloadData: boolean) {
     this.mostrarIterationModal = false;
     this.selectedIteration = null;
-    if (refresh) {
-      // Logic to refresh progress data in the progress component
-      // This will be handled by re-rendering the progress component.
-      // For now, just close the modal.
+
+    if (reloadData) {
+      // Recargar las iteraciones después de crear/actualizar
+      this.loadIterations();
     }
   }
+
+  // Eliminar iteración
+  deleteIteration(iteration: Iteration) {
+    if (!this.detalleProyecto?._id) return;
+
+    if (!confirm(`¿Estás seguro de eliminar la iteración "${iteration.iteration}"?`)) {
+      return;
+    }
+
+    this.mainService.deleteIteracion(this.detalleProyecto._id, iteration.iteration).subscribe({
+      next: (response) => {
+        console.log('Iteración eliminada', response);
+        this.loadIterations(); // Recargar lista
+      },
+      error: (err) => {
+        console.error('Error eliminando iteración', err);
+        alert('Error al eliminar la iteración');
+      }
+    });
+  }
+
+  // Actualizar solo el progreso de tareas (opcional, para checkboxes rápidos)
+  updateTaskProgress(iteration: Iteration, tasks: any[]) {
+    if (!this.detalleProyecto?._id) return;
+
+    this.mainService.updateIterationProgress(
+      this.detalleProyecto._id, 
+      iteration.iteration, 
+      tasks
+    ).subscribe({
+      next: () => {
+        console.log('Progreso actualizado');
+        this.loadIterations();
+      },
+      error: (err) => console.error('Error actualizando progreso', err)
+    });
+  }
+
+  // ==================== FIN MÉTODOS DE ITERACIONES ====================
 
   openHistoryModal() {
     this.mostrarHistoryModal = true;

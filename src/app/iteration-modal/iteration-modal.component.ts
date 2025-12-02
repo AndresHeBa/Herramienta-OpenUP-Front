@@ -30,7 +30,10 @@ export class IterationModalComponent implements OnInit {
       tasks: this.fb.array(this.isEditMode ? this.iteration!.tasks.map(t => this.createTask(t)) : []),
       completionPercent: [this.iteration?.completionPercent || 0, [Validators.min(0), Validators.max(100)]],
       blockers: [this.iteration?.blockers || ''],
-      observations: [this.iteration?.observations || '']
+      observations: [this.iteration?.observations || ''],
+      goal: [this.iteration?.goal || ''],
+      phase: [this.iteration?.phase || ''],
+      active: [this.iteration?.active || true]
     });
   }
 
@@ -82,4 +85,6 @@ export class IterationModalComponent implements OnInit {
   cancel() {
     this.closeModal.emit(false);
   }
+
+  
 }
