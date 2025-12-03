@@ -47,26 +47,26 @@
             <div class="detalle-grid">
                 <div class="detalle-item">
                     <strong>Identificador:</strong>
-                    <p>{{ detalleProyecto.identificador }}</p>
+                    <p>{{ detalleProyecto.identifier }}</p>
                 </div>
                 <div class="detalle-item">
                     <strong>Estado:</strong>
-                    <p>{{ detalleProyecto.estado }}</p>
+                    <p>{{ detalleProyecto.status }}</p>
                 </div>
                 <div class="detalle-item">
                     <strong>Fecha de Inicio:</strong>
-                    <p>{{ detalleProyecto.fechaInicio }}</p>
+                    <p>{{ detalleProyecto.startDate }}</p>
                 </div>
                 <div class="detalle-item">
                     <strong>Responsable:</strong>
-                    <p>{{ detalleProyecto.responsable || 'No asignado' }}</p>
+                    <p>{{ detalleProyecto.responsible || 'No asignado' }}</p>
                 </div>
             </div>
         </div>
 
         <div class="detalle-seccion">
             <strong>Descripción:</strong>
-            <p>{{ detalleProyecto.descripcion || 'Sin descripción' }}</p>
+            <p>{{ detalleProyecto.description || 'Sin descripción' }}</p>
         </div>
 
         <div class="detalle-seccion">
@@ -155,7 +155,7 @@
 
         <div class="detalle-actions">
             <button class="btn-accion" (click)="cerrarDetalle()">Cerrar</button>
-            <button class="btn-accion" *ngIf="detalleProyecto.identificador" (click)="openArtifacts(detalleProyecto.identificador)">Abrir Artefactos</button>
+            <button class="btn-accion" *ngIf="detalleProyecto.identifier" (click)="openArtifacts(detalleProyecto.identifier)">Abrir Artefactos</button>
         </div>
     </div>
 </section>
@@ -182,11 +182,11 @@
         <tbody>
             <tr *ngFor="let proyecto of proyectos">
                 <td>{{ proyecto.name }}</td>
-                <td>{{ proyecto.identificador }}</td>
-                <td>{{ proyecto.fechaInicio }}</td>
-                <td><span class="estado-badge">{{ proyecto.estado }}</span></td>
-                <td>{{ proyecto.responsable || '-' }}</td>
-                <td>{{ proyecto.descripcion || '-' }}</td>
+                <td>{{ proyecto.identifier }}</td>
+                <td>{{ proyecto.startDate }}</td>
+                <td><span class="estado-badge">{{ proyecto.status }}</span></td>
+                <td>{{ proyecto.responsible || '-' }}</td>
+                <td>{{ proyecto.description || '-' }}</td>
                 <td>{{ proyecto.tags || '-' }}</td>
                 <td class="acciones">
                     <button class="btn-accion btn-ver" (click)="verDetalles(proyecto._id)"

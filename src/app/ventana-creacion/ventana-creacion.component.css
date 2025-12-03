@@ -48,6 +48,7 @@
     align-items: center;
     justify-content: center;
     transition: background 0.3s;
+    margin-top: 100px;
 }
 
 .btn-cerrar:hover {

@@ -20,13 +20,13 @@ interface Fase {
 interface Proyecto {
   _id: string;
   name: string;
-  identificador: string;
-  fechaInicio: string;
-  responsable: string;
-  descripcion: string;
+  identifier: string;
+  startDate: string;
+  responsible: string;
+  description: string;
   tags: string;
-  activo: boolean;
-  estado: string;
+  active: boolean;
+  status: string;
   phases: Fase[];
   iterations?: Iteration[];
 }
@@ -118,24 +118,24 @@ export class VentanaCreacionComponent implements OnInit {
     const nuevoProyecto: Proyecto = {
       _id: Date.now().toString(),
       name: this.formData.nombre,
-      identificador: this.formData.identificador,
-      fechaInicio: this.formData.fechaInicio,
-      responsable: this.formData.responsable,
-      descripcion: this.formData.descripcion,
+      identifier: this.formData.identificador,
+      startDate: this.formData.fechaInicio,
+      responsible: this.formData.responsable,
+      description: this.formData.descripcion,
       tags: this.formData.tags,
-      estado: 'Creado',
-      activo: true,
+      status: 'Creado',
+      active: true,
       phases: JSON.parse(JSON.stringify(this.fasesPredeterminadas))
     };
 
     this.mainService.postproyect(
       nuevoProyecto.name,
-      nuevoProyecto.identificador,
-      nuevoProyecto.fechaInicio,
-      nuevoProyecto.descripcion,
-      nuevoProyecto.responsable,
+      nuevoProyecto.identifier,
+      nuevoProyecto.startDate,
+      nuevoProyecto.description,
+      nuevoProyecto.responsible,
       nuevoProyecto.tags.split(',').map(tag => tag.trim()),
-      nuevoProyecto.activo
+      nuevoProyecto.active
     ).subscribe({
       next: (response) => {
         console.log('Proyecto creado en la API:', response);
@@ -159,10 +159,10 @@ export class VentanaCreacionComponent implements OnInit {
         this.proyectos[index] = {
           ...this.proyectos[index],
           name: this.formData.nombre,
-          identificador: this.formData.identificador,
-          fechaInicio: this.formData.fechaInicio,
-          responsable: this.formData.responsable,
-          descripcion: this.formData.descripcion,
+          identifier: this.formData.identificador,
+          startDate: this.formData.fechaInicio,
+          responsible: this.formData.responsable,
+          description: this.formData.descripcion,
           tags: this.formData.tags
         };
         this.guardarProyectos();
@@ -180,10 +180,10 @@ export class VentanaCreacionComponent implements OnInit {
     if (proyecto) {
       this.formData = {
         nombre: proyecto.name,
-        identificador: proyecto.identificador,
-        fechaInicio: proyecto.fechaInicio,
-        responsable: proyecto.responsable,
-        descripcion: proyecto.descripcion,
+        identificador: proyecto.identifier,
+        fechaInicio: proyecto.startDate,
+        responsable: proyecto.responsible,
+        descripcion: proyecto.description,
         tags: proyecto.tags
       };
       this.editandoId = id;
@@ -244,8 +244,8 @@ export class VentanaCreacionComponent implements OnInit {
           console.log('Proyecto archivado en la API:', response);
           const proyecto = this.proyectos.find(p => p._id === id);
           if (proyecto) {
-            proyecto.activo = false;
-            proyecto.estado = 'Archivado';
+            proyecto.active = false;
+            proyecto.status = 'Archivado';
             this.guardarProyectos();
           }
         },
