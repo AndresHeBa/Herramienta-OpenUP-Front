@@ -60,9 +60,9 @@ export class VentanaCreacionComponent implements OnInit {
   selectedProjectIdForMicroincrement: string | null = null;
 
   constructor(
-    private mainService: MainService, 
-    private fb: FormBuilder, 
-    public activeProject: ActiveProjectService, 
+    private mainService: MainService,
+    private fb: FormBuilder,
+    public activeProject: ActiveProjectService,
     private router: Router
   ) { }
 
@@ -195,7 +195,15 @@ export class VentanaCreacionComponent implements OnInit {
     this.detalleProyecto = this.proyectos.find(p => p._id === id) || null;
     this.mostrarDetalle = true;
     console.log(this.detalleProyecto)
-    
+
+    // Scroll automático a la sección de detalles
+    setTimeout(() => {
+      const detalleSection = document.querySelector('.detalle-section');
+      if (detalleSection) {
+        detalleSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+
     // Cargar iteraciones cuando se abre el detalle
     if (this.detalleProyecto) {
       this.loadIterations();
@@ -285,7 +293,7 @@ export class VentanaCreacionComponent implements OnInit {
 
     this.mainService.getIteraciones(this.detalleProyecto._id).subscribe({
       next: (response) => {
-        this.iteraciones = Array.isArray(response.data)? response.data: [];
+        this.iteraciones = Array.isArray(response.data) ? response.data : [];
         console.log(response.data)
       },
       error: (err) => {
@@ -297,6 +305,7 @@ export class VentanaCreacionComponent implements OnInit {
 
   // Abrir modal para CREAR nueva iteración
   openCreateIterationModal() {
+    console.log(this.mostrarIterationModal);
     this.selectedIteration = null;
     this.mostrarIterationModal = true;
   }
@@ -348,8 +357,8 @@ export class VentanaCreacionComponent implements OnInit {
     if (!this.detalleProyecto?._id) return;
 
     this.mainService.updateIterationProgress(
-      this.detalleProyecto._id, 
-      iteration.iteration, 
+      this.detalleProyecto._id,
+      iteration.iteration,
       tasks
     ).subscribe({
       next: () => {

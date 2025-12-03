@@ -34,54 +34,13 @@
     </form>
 </section>
 
-<!-- Tabla de proyectos -->
-<section class="tabla-container">
-    <h2>Proyectos</h2>
-    <div *ngIf="proyectos.length === 0" class="sin-proyectos">
-        <p>No hay proyectos aún. ¡Crea uno nuevo!</p>
-    </div>
-    <table *ngIf="proyectos.length > 0">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Identificador</th>
-                <th>Fecha Inicio</th>
-                <th>Estado</th>
-                <th>Responsable</th>
-                <th>Descripción</th>
-                <th>Tags</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let proyecto of proyectos">
-                <td>{{ proyecto.name }}</td>
-                <td>{{ proyecto.identificador }}</td>
-                <td>{{ proyecto.fechaInicio }}</td>
-                <td><span class="estado-badge">{{ proyecto.estado }}</span></td>
-                <td>{{ proyecto.responsable || '-' }}</td>
-                <td>{{ proyecto.descripcion || '-' }}</td>
-                <td>{{ proyecto.tags || '-' }}</td>
-                <td class="acciones">
-                    <button class="btn-accion btn-ver" (click)="verDetalles(proyecto._id)"
-                        title="Ver detalles">Ver</button>
-                    <button class="btn-accion btn-editar" (click)="editarProyecto(proyecto._id)"
-                        title="Editar proyecto">Editar</button>
-                    <button class="btn-accion btn-eliminar" (click)="eliminarProyecto(proyecto._id)"
-                        title="Eliminar proyecto">Eliminar</button>
-                    <button class="btn-accion btn-archivar" (click)="archivarProyecto(proyecto._id)"
-                        title="Archivar proyecto">Archivar</button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</section>
-
-<!-- Modal de detalles del proyecto -->
-<div class="modal" [class.visible]="mostrarDetalle" *ngIf="detalleProyecto">
-    <div class="modal-contenido">
-        <button class="btn-cerrar" (click)="cerrarDetalle()">×</button>
-        <h2>{{ detalleProyecto.name }}</h2>
+<!-- Sección de detalles del proyecto -->
+<section class="detalle-section" [class.hidden]="!mostrarDetalle" *ngIf="detalleProyecto">
+    <div class="detalle-contenido">
+        <div class="detalle-header">
+            <h2>{{ detalleProyecto.name }}</h2>
+            <button class="btn-cerrar" (click)="cerrarDetalle()">×</button>
+        </div>
 
         <div class="detalle-seccion">
             <h3>Información General</h3>
@@ -194,18 +153,64 @@
             </div>
         </div>
 
-                <div class="modal-actions">
-                    <button class="btn-accion" (click)="cerrarDetalle()">Cerrar</button>
-                    <button class="btn-accion" *ngIf="detalleProyecto.identificador" (click)="openArtifacts(detalleProyecto.identificador)">Abrir Artefactos</button>
-                </div>
+        <div class="detalle-actions">
+            <button class="btn-accion" (click)="cerrarDetalle()">Cerrar</button>
+            <button class="btn-accion" *ngIf="detalleProyecto.identificador" (click)="openArtifacts(detalleProyecto.identificador)">Abrir Artefactos</button>
+        </div>
     </div>
-</div>
+</section>
 
+<!-- Tabla de proyectos -->
+<section class="tabla-container">
+    <h2>Proyectos</h2>
+    <div *ngIf="proyectos.length === 0" class="sin-proyectos">
+        <p>No hay proyectos aún. ¡Crea uno nuevo!</p>
+    </div>
+    <table *ngIf="proyectos.length > 0">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Identificador</th>
+                <th>Fecha Inicio</th>
+                <th>Estado</th>
+                <th>Responsable</th>
+                <th>Descripción</th>
+                <th>Tags</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let proyecto of proyectos">
+                <td>{{ proyecto.name }}</td>
+                <td>{{ proyecto.identificador }}</td>
+                <td>{{ proyecto.fechaInicio }}</td>
+                <td><span class="estado-badge">{{ proyecto.estado }}</span></td>
+                <td>{{ proyecto.responsable || '-' }}</td>
+                <td>{{ proyecto.descripcion || '-' }}</td>
+                <td>{{ proyecto.tags || '-' }}</td>
+                <td class="acciones">
+                    <button class="btn-accion btn-ver" (click)="verDetalles(proyecto._id)"
+                        title="Ver detalles">Ver</button>
+                    <button class="btn-accion btn-editar" (click)="editarProyecto(proyecto._id)"
+                        title="Editar proyecto">Editar</button>
+                    <button class="btn-accion btn-eliminar" (click)="eliminarProyecto(proyecto._id)"
+                        title="Eliminar proyecto">Eliminar</button>
+                    <button class="btn-accion btn-archivar" (click)="archivarProyecto(proyecto._id)"
+                        title="Archivar proyecto">Archivar</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
 
-<!-- Modal iterations -->
+<!-- ============================================ -->
+<!-- MODALES - FUERA DE LA SECCIÓN DE DETALLES -->
+<!-- ============================================ -->
+
+<!-- Modal iterations - AHORA SOLO REQUIERE mostrarIterationModal -->
 <app-iteration-modal 
-  *ngIf="mostrarIterationModal && detalleProyecto"
-  [projectId]="detalleProyecto._id"
+  *ngIf="mostrarIterationModal"
+  [projectId]="detalleProyecto?._id || ''"
   [iteration]="selectedIteration"
   (closeModal)="closeIterationModal($event)"
 ></app-iteration-modal>

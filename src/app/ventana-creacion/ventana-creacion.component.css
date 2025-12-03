@@ -1,494 +1,277 @@
-/* ==================== SECCIÓN DE ITERACIONES ==================== */
+/* ==================== SECCIÓN DE DETALLES (NO MODAL) ==================== */
 
-.iterations-section {
-  margin: 2rem 0;
-  padding: 1.5rem;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+.detalle-section {
+    margin: 2rem 0;
+    padding: 0;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+    /* REMOVIDO: overflow: hidden; - Esto impedía que el modal se muestre */
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #e0e0e0;
+.detalle-section.hidden {
+    display: none;
 }
 
-.section-header h2 {
-  margin: 0;
-  color: #333;
+.detalle-contenido {
+    padding: 2rem;
 }
 
-/* ==================== LISTA DE ITERACIONES ==================== */
-
-.iterations-list {
-  display: grid;
-  gap: 1.5rem;
+.detalle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #3498db;
 }
 
-.iteration-card {
-  padding: 1.5rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background: #fafafa;
-  transition: box-shadow 0.3s;
+.detalle-header h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.8rem;
 }
 
-.iteration-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+.btn-cerrar {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
 }
 
-.iteration-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
+.btn-cerrar:hover {
+    background: #c0392b;
 }
 
-.iteration-header h3 {
-  margin: 0;
-  color: #2c3e50;
+.detalle-seccion {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
 }
 
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  background: #95a5a6;
-  color: white;
+.detalle-seccion h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    font-size: 1.3rem;
 }
 
-.status-badge.active {
-  background: #27ae60;
+.detalle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
 }
 
-.iteration-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+.detalle-item {
+    padding: 1rem;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
 }
 
-.iteration-info p {
-  margin: 0;
-  color: #555;
+.detalle-item strong {
+    display: block;
+    color: #34495e;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-/* ==================== BARRA DE PROGRESO ==================== */
-
-.progress-bar {
-  width: 100%;
-  height: 24px;
-  background: #e0e0e0;
-  border-radius: 12px;
-  overflow: hidden;
-  margin: 1rem 0;
-  position: relative;
+.detalle-item p {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
 }
 
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #3498db, #2ecc71);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: width 0.3s ease;
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
 }
 
-/* ==================== TAREAS ==================== */
-
-.tasks-list {
-  margin: 1rem 0;
-  padding: 1rem;
-  background: white;
-  border-radius: 6px;
+.tag {
+    padding: 0.25rem 0.75rem;
+    background: #3498db;
+    color: white;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 500;
 }
 
-.tasks-list h4 {
-  margin: 0 0 0.75rem 0;
-  color: #34495e;
+.fases-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
 }
 
-.tasks-list ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.fase-item {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
 }
 
-.tasks-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border-bottom: 1px solid #ecf0f1;
+.fase-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #ecf0f1;
 }
 
-.tasks-list li:last-child {
-  border-bottom: none;
+.fase-nombre {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.1rem;
 }
 
-.tasks-list li input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
+.fase-estado {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: #95a5a6;
+    color: white;
 }
 
-.tasks-list li span {
-  flex: 1;
-  color: #2c3e50;
+.plan-seccion {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #f39c12;
 }
 
-.tasks-list li span.completed {
-  text-decoration: line-through;
-  color: #95a5a6;
+.plan-detalle h4 {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 1px solid #f39c12;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
 }
 
-/* ==================== BLOQUEOS Y OBSERVACIONES ==================== */
-
-.blockers, .observations {
-  margin: 1rem 0;
-  padding: 1rem;
-  background: white;
-  border-radius: 6px;
-  border-left: 4px solid #e74c3c;
+.plan-detalle p {
+    margin: 0.5rem 0;
+    line-height: 1.6;
 }
 
-.observations {
-  border-left-color: #3498db;
+.plan-detalle strong {
+    color: #34495e;
+    min-width: 180px;
+    display: inline-block;
 }
 
-.blockers h4, .observations h4 {
-  margin: 0 0 0.5rem 0;
-  color: #34495e;
+.btn-crear-plan {
+    padding: 0.75rem 1.5rem;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: background 0.3s;
+    margin-top: 1rem;
 }
 
-.blockers p, .observations p {
-  margin: 0;
-  color: #555;
-  line-height: 1.5;
+.btn-crear-plan:hover {
+    background: #229954;
 }
 
-/* ==================== ACCIONES ==================== */
-
-.iteration-actions {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e0e0e0;
+.plan-form-container {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid #3498db;
 }
 
-/* ==================== MENSAJE SIN ITERACIONES ==================== */
-
-.no-iterations {
-  text-align: center;
-  padding: 3rem;
-  color: #7f8c8d;
+.plan-form-container h4 {
+    margin-top: 0;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
 }
 
-.no-iterations p {
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+.plan-form-container label {
+    display: block;
+    margin-bottom: 1rem;
+    color: #34495e;
+    font-weight: 600;
 }
 
-/* ==================== BOTONES ==================== */
-
-.btn-primary {
-  padding: 0.6rem 1.2rem;
-  background: #3498db;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.3s;
+.plan-form-container input,
+.plan-form-container textarea {
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
 }
 
-.btn-primary:hover {
-  background: #2980b9;
+.plan-form-container textarea {
+    min-height: 100px;
+    resize: vertical;
 }
 
-.btn-edit {
-  padding: 0.5rem 1rem;
-  background: #f39c12;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.3s;
+.detalle-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #e0e0e0;
 }
 
-.btn-edit:hover {
-  background: #e67e22;
-}
-
-.btn-delete {
-  padding: 0.5rem 1rem;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.3s;
-}
-
-.btn-delete:hover {
-  background: #c0392b;
-}
-
-/* ==================== MODAL ==================== */
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  animation: fadeIn 0.3s;
-}
-
-.modal-contenido {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  max-width: 700px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-  animation: slideUp 0.3s;
-}
-
-.modal-contenido h2 {
-  margin-top: 0;
-  color: #2c3e50;
-  border-bottom: 2px solid #3498db;
-  padding-bottom: 0.5rem;
-}
-
-.modal.visible {
-  display: flex;
-}
-
-/* Asegurar que los modales hijo (iteration-modal, history-modal, etc.) 
-   tengan z-index mayor y estén en el nivel correcto del DOM */
-::ng-deep app-iteration-modal .modal,
-::ng-deep app-history-modal .modal,
-::ng-deep app-microincrement-modal .modal {
-  z-index: 2000 !important;
-  background-color: rgba(0, 0, 0, 0.6);
-}
-
-/* ==================== FORMULARIO ==================== */
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-label {
-  display: block;
-  color: #34495e;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-input[type="text"],
-input[type="date"],
-input[type="number"],
-textarea {
-  width: 100%;
-  padding: 0.6rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-}
-
-input:focus,
-textarea:focus {
-  outline: none;
-  border-color: #3498db;
-}
-
-input[readonly] {
-  background: #ecf0f1;
-  cursor: not-allowed;
-}
-
-/* ==================== TAREAS EN MODAL ==================== */
-
-.tasks-section {
-  margin: 1.5rem 0;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.tasks-section h3 {
-  margin-top: 0;
-  color: #2c3e50;
-}
-
-.task-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  padding: 0.75rem;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #e0e0e0;
-}
-
-.task-item input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-}
-
-.task-item input[type="text"] {
-  flex: 1;
-  margin: 0;
-}
-
-.btn-eliminar-task {
-  width: 32px;
-  height: 32px;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 1.5rem;
-  line-height: 1;
-  transition: background 0.3s;
-}
-
-.btn-eliminar-task:hover {
-  background: #c0392b;
-}
-
-.btn-nueva-task {
-  padding: 0.6rem 1rem;
-  background: #27ae60;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.3s;
-}
-
-.btn-nueva-task:hover {
-  background: #229954;
-}
-
-/* ==================== BOTONES DEL MODAL ==================== */
-
-.botones-grupo {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 2px solid #e0e0e0;
-}
-
-.botones-grupo button[type="submit"] {
-  padding: 0.7rem 1.5rem;
-  background: #27ae60;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: background 0.3s;
-}
-
-.botones-grupo button[type="submit"]:hover:not(:disabled) {
-  background: #229954;
-}
-
-.botones-grupo button[type="submit"]:disabled {
-  background: #95a5a6;
-  cursor: not-allowed;
-}
-
-.btn-cancelar {
-  padding: 0.7rem 1.5rem;
-  background: #95a5a6;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: background 0.3s;
-}
-
-.btn-cancelar:hover {
-  background: #7f8c8d;
-}
-
-/* ==================== ANIMACIONES ==================== */
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.action-buttons-for-micros {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e0e0e0;
 }
 
 /* ==================== RESPONSIVE ==================== */
 
 @media (max-width: 768px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .iteration-info {
-    grid-template-columns: 1fr;
-  }
-  
-  .section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-  
-  .modal-contenido {
-    width: 95%;
-    padding: 1.5rem;
-  }
+    .detalle-contenido {
+        padding: 1rem;
+    }
+    
+    .detalle-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .detalle-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .detalle-actions {
+        flex-direction: column;
+    }
+    
+    .detalle-actions button {
+        width: 100%;
+    }
+    
+    .detalle-seccion {
+        padding: 1rem;
+    }
 }
