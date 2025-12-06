@@ -16,4 +16,7 @@ export interface Iteration {
     creationDate: Date;
     version: number;
     status: string;
+    goal: string;
+    phase: string;
+    active: boolean;
 }

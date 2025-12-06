@@ -34,87 +34,45 @@
     </form>
 </section>
 
-<!-- Tabla de proyectos -->
-<section class="tabla-container">
-    <h2>Proyectos</h2>
-    <div *ngIf="proyectos.length === 0" class="sin-proyectos">
-        <p>No hay proyectos aún. ¡Crea uno nuevo!</p>
-    </div>
-    <table *ngIf="proyectos.length > 0">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Identificador</th>
-                <th>Fecha Inicio</th>
-                <th>Estado</th>
-                <th>Responsable</th>
-                <th>Descripción</th>
-                <th>Tags</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let proyecto of proyectos">
-                <td>{{ proyecto.nombre }}</td>
-                <td>{{ proyecto.identificador }}</td>
-                <td>{{ proyecto.fechaInicio }}</td>
-                <td><span class="estado-badge">{{ proyecto.estado }}</span></td>
-                <td>{{ proyecto.responsable || '-' }}</td>
-                <td>{{ proyecto.descripcion || '-' }}</td>
-                <td>{{ proyecto.tags || '-' }}</td>
-                <td class="acciones">
-                    <button class="btn-accion btn-ver" (click)="verDetalles(proyecto.id)"
-                        title="Ver detalles">Ver</button>
-                    <button class="btn-accion btn-editar" (click)="editarProyecto(proyecto.id)"
-                        title="Editar proyecto">Editar</button>
-                    <button class="btn-accion btn-eliminar" (click)="eliminarProyecto(proyecto.id)"
-                        title="Eliminar proyecto">Eliminar</button>
-                    <button class="btn-accion btn-archivar" (click)="archivarProyecto(proyecto.id)"
-                        title="Archivar proyecto">Archivar</button>
-                    <button class="btn-accion btn-ver" *ngIf="proyecto.identificador" (click)="openArtifacts(proyecto.identificador)" title="Abrir artefactos">Abrir Artefactos</button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</section>
-
-<!-- Modal de detalles del proyecto -->
-<div class="modal" [class.visible]="mostrarDetalle" *ngIf="detalleProyecto">
-    <div class="modal-contenido">
-        <button class="btn-cerrar" (click)="cerrarDetalle()">×</button>
-        <h2>{{ detalleProyecto.nombre }}</h2>
+<!-- Sección de detalles del proyecto -->
+<section class="detalle-section" [class.hidden]="!mostrarDetalle" *ngIf="detalleProyecto">
+    <div class="detalle-contenido">
+        <div class="detalle-header">
+            <h2>{{ detalleProyecto.name }}</h2>
+            <button class="btn-cerrar" (click)="cerrarDetalle()">×</button>
+        </div>
 
         <div class="detalle-seccion">
             <h3>Información General</h3>
             <div class="detalle-grid">
                 <div class="detalle-item">
                     <strong>Identificador:</strong>
-                    <p>{{ detalleProyecto.identificador }}</p>
+                    <p>{{ detalleProyecto.identifier }}</p>
                 </div>
                 <div class="detalle-item">
                     <strong>Estado:</strong>
-                    <p>{{ detalleProyecto.estado }}</p>
+                    <p>{{ detalleProyecto.status }}</p>
                 </div>
                 <div class="detalle-item">
                     <strong>Fecha de Inicio:</strong>
-                    <p>{{ detalleProyecto.fechaInicio }}</p>
+                    <p>{{ detalleProyecto.startDate }}</p>
                 </div>
                 <div class="detalle-item">
                     <strong>Responsable:</strong>
-                    <p>{{ detalleProyecto.responsable || 'No asignado' }}</p>
+                    <p>{{ detalleProyecto.responsible || 'No asignado' }}</p>
                 </div>
             </div>
         </div>
 
         <div class="detalle-seccion">
             <strong>Descripción:</strong>
-            <p>{{ detalleProyecto.descripcion || 'Sin descripción' }}</p>
+            <p>{{ detalleProyecto.description || 'Sin descripción' }}</p>
         </div>
 
         <div class="detalle-seccion">
             <strong>Tags:</strong>
             <div class="tags-list">
-                <span *ngFor="let tag of (detalleProyecto.tags ? detalleProyecto.tags.split(',') : [])" class="tag">
+                <span *ngFor="let tag of detalleProyecto.tags" class="tag">
                     {{ tag.trim() }}
                 </span>
             </div>
@@ -123,27 +81,27 @@
         <!-- Progress Component -->
         <div class="detalle-seccion">
             <app-progress 
-                [projectId]="detalleProyecto.id"
-                (newIteration)="openIterationModal(null)"
+                [projectId]="detalleProyecto._id"
+                (newIteration)="openCreateIterationModal()"
                 (editIteration)="openIterationModal($event)"
                 (viewHistory)="openHistoryModal()"
             ></app-progress>
             <div class="action-buttons-for-micros">
-              <button class="btn-accion btn-ver" (click)="openMicroincrementModal(detalleProyecto.id)" title="Ver Microincrementos">Ver Microincrementos</button>
+              <button class="btn-accion btn-ver" (click)="openMicroincrementModal(detalleProyecto._id)" title="Ver Microincrementos">Ver Microincrementos</button>
             </div>
         </div>
 
         <div class="detalle-seccion">
             <h3>Fases del Proyecto</h3>
             <div class="fases-list">
-                <div *ngFor="let fase of detalleProyecto.fases" class="fase-item">
+                <div *ngFor="let fase of detalleProyecto.phases" class="fase-item">
                     <div class="fase-header">
-                        <div class="fase-nombre">{{ fase.nombre }}</div>
-                        <div class="fase-estado">{{ fase.estado }}</div>
+                        <div class="fase-nombre">{{ fase.name }}</div>
+                        <div class="fase-estado">{{ fase.status }}</div>
                     </div>
 
                     <!-- Lógica específica para la Fase de Incepción -->
-                    <div *ngIf="fase.nombre === 'Incepción'" class="plan-seccion">
+                    <div *ngIf="fase.name === 'Incepción'" class="plan-seccion">
 
                         <!-- 1. Mostrar el plan si ya existe -->
                         <div *ngIf="fase.plan" class="plan-detalle">
@@ -195,24 +153,73 @@
             </div>
         </div>
 
-                <div class="modal-actions">
-                    <button class="btn-accion" (click)="cerrarDetalle()">Cerrar</button>
-                </div>
+        <div class="detalle-actions">
+            <button class="btn-accion" (click)="cerrarDetalle()">Cerrar</button>
+            <button class="btn-accion" *ngIf="detalleProyecto.identifier" (click)="openArtifacts(detalleProyecto.identifier)">Abrir Artefactos</button>
+        </div>
     </div>
-</div>
+</section>
 
-<!-- Iteration Modal -->
+<!-- Tabla de proyectos -->
+<section class="tabla-container">
+    <h2>Proyectos</h2>
+    <div *ngIf="proyectos.length === 0" class="sin-proyectos">
+        <p>No hay proyectos aún. ¡Crea uno nuevo!</p>
+    </div>
+    <table *ngIf="proyectos.length > 0">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Identificador</th>
+                <th>Fecha Inicio</th>
+                <th>Estado</th>
+                <th>Responsable</th>
+                <th>Descripción</th>
+                <th>Tags</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let proyecto of proyectos">
+                <td>{{ proyecto.name }}</td>
+                <td>{{ proyecto.identifier }}</td>
+                <td>{{ proyecto.startDate }}</td>
+                <td><span class="estado-badge">{{ proyecto.status }}</span></td>
+                <td>{{ proyecto.responsible || '-' }}</td>
+                <td>{{ proyecto.description || '-' }}</td>
+                <td>{{ proyecto.tags || '-' }}</td>
+                <td class="acciones">
+                    <button class="btn-accion btn-ver" (click)="verDetalles(proyecto._id)"
+                        title="Ver detalles">Ver</button>
+                    <button class="btn-accion btn-editar" (click)="editarProyecto(proyecto._id)"
+                        title="Editar proyecto">Editar</button>
+                    <button class="btn-accion btn-eliminar" (click)="eliminarProyecto(proyecto._id)"
+                        title="Eliminar proyecto">Eliminar</button>
+                    <button class="btn-accion btn-archivar" (click)="archivarProyecto(proyecto._id)"
+                        title="Archivar proyecto">Archivar</button>
+                    <button class="btn-accion btn-ver" *ngIf="proyecto.identificador" (click)="openArtifacts(proyecto.identificador)" title="Abrir artefactos">Abrir Artefactos</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- ============================================ -->
+<!-- MODALES - FUERA DE LA SECCIÓN DE DETALLES -->
+<!-- ============================================ -->
+
+<!-- Modal iterations - AHORA SOLO REQUIERE mostrarIterationModal -->
 <app-iteration-modal 
-    *ngIf="mostrarIterationModal && detalleProyecto"
-    [projectId]="detalleProyecto.id"
-    [iteration]="selectedIteration"
-    (closeModal)="closeIterationModal($event)"
+  *ngIf="mostrarIterationModal"
+  [projectId]="detalleProyecto?._id || ''"
+  [iteration]="selectedIteration"
+  (closeModal)="closeIterationModal($event)"
 ></app-iteration-modal>
 
 <!-- History Modal -->
 <app-history-modal
     *ngIf="mostrarHistoryModal && detalleProyecto"
-    [projectId]="detalleProyecto.id"
+    [projectId]="detalleProyecto._id"
     (closeModal)="closeHistoryModal()"
 ></app-history-modal>
 

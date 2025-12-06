@@ -5,16 +5,31 @@
     <form [formGroup]="iterationForm" (ngSubmit)="saveIteration()">
       <div class="form-grid">
         <label>Iteración:
-          <input formControlName="iteration" required>
+          <input formControlName="iteration" [readonly]="isEditMode" required>
         </label>
+        
         <label>Fecha de inicio:
           <input type="date" formControlName="startDate" required>
         </label>
+        
         <label>Fecha de fin:
           <input type="date" formControlName="endDate" required>
         </label>
+        
+        <label>Objetivo (Goal):
+          <input type="text" formControlName="goal">
+        </label>
+        
+        <label>Fase:
+          <input type="text" formControlName="phase" required>
+        </label>
+        
+        <label>Estado:
+          <input type="checkbox" formControlName="active"> Activo
+        </label>
+        
         <label>% Completado:
-          <input type="number" formControlName="completionPercent">
+          <input type="number" formControlName="completionPercent" readonly>
         </label>
       </div>
 
@@ -31,15 +46,17 @@
       </div>
       
       <label>Bloqueos:
-        <textarea formControlName="blockers"></textarea>
+        <textarea formControlName="blockers" rows="3"></textarea>
       </label>
       
       <label>Observaciones:
-        <textarea formControlName="observations"></textarea>
+        <textarea formControlName="observations" rows="3"></textarea>
       </label>
       
       <div class="botones-grupo">
-        <button type="submit" [disabled]="iterationForm.invalid">{{ isEditMode ? 'Actualizar' : 'Crear' }}</button>
+        <button type="submit" [disabled]="iterationForm.invalid">
+          {{ isEditMode ? 'Actualizar' : 'Crear' }}
+        </button>
         <button type="button" class="btn-cancelar" (click)="cancel()">Cancelar</button>
       </div>
     </form>

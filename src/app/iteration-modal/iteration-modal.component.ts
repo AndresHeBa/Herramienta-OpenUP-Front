@@ -22,6 +22,7 @@ export class IterationModalComponent implements OnInit {
   constructor(private fb: FormBuilder, private mainService: MainService) {}
 
   ngOnInit() {
+
     this.isEditMode = !!this.iteration;
     this.iterationForm = this.fb.group({
       iteration: [this.iteration?.iteration || '', Validators.required],
@@ -30,8 +31,40 @@ export class IterationModalComponent implements OnInit {
       tasks: this.fb.array(this.isEditMode ? this.iteration!.tasks.map(t => this.createTask(t)) : []),
       completionPercent: [this.iteration?.completionPercent || 0, [Validators.min(0), Validators.max(100)]],
       blockers: [this.iteration?.blockers || ''],
-      observations: [this.iteration?.observations || '']
+      observations: [this.iteration?.observations || ''],
+      goal: [this.iteration?.goal || ''],
+      phase: [this.iteration?.phase || ''],
+      active: [this.iteration?.active || true]
     });
+    console.log()
+  }
+
+  ngAfterViewInit() {
+    console.log('👁️ IterationModalComponent - Vista inicializada');
+    
+    // FORZAR VISIBILIDAD DEL MODAL
+    setTimeout(() => {
+      const modalElement = document.querySelector('.modal') as HTMLElement;
+      console.log('🔍 Elemento .modal encontrado:', modalElement);
+      
+      if (modalElement) {
+        // Forzar estilos para hacer visible el modal
+        modalElement.style.visibility = 'visible';
+        modalElement.style.opacity = '1';
+        modalElement.style.display = 'flex';
+        modalElement.style.position = 'fixed';
+        modalElement.style.zIndex = '99999';
+        
+        const styles = window.getComputedStyle(modalElement);
+        console.log('📊 Estilos del modal después de forzar:', {
+          display: styles.display,
+          position: styles.position,
+          zIndex: styles.zIndex,
+          visibility: styles.visibility,
+          opacity: styles.opacity
+        });
+      }
+    }, 0);
   }
 
   createTask(task: Task = { name: '', completed: false }): FormGroup {
@@ -82,4 +115,6 @@ export class IterationModalComponent implements OnInit {
   cancel() {
     this.closeModal.emit(false);
   }
+
+  
 }
