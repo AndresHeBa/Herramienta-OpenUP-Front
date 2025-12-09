@@ -1,28 +1,41 @@
 <div class="app-shell">
-	<aside class="sidebar mat-elevation-z4">
+	<aside class="sidebar mat-elevation-z4" *ngIf="currentUser$ | async as user">
         <div class="brand">
             <mat-icon>description</mat-icon>
             OpenUP
         </div>
 
         <nav>
-            <a mat-button routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-            <mat-icon>home</mat-icon> Inicio
+            <a mat-button routerLink="/ventana-creacion" routerLinkActive="active">
+                <mat-icon>home</mat-icon> Inicio
             </a>
-            <a mat-button routerLink="/artifact-types" routerLinkActive="active">
-            <mat-icon>assignment</mat-icon> Tipos de artefacto
+            <!-- <a mat-button routerLink="/artifact-types" routerLinkActive="active">
+                <mat-icon>assignment</mat-icon> Tipos de artefacto
             </a>
             <a mat-button routerLink="/associate-workflows" routerLinkActive="active">
-            <mat-icon>assignment</mat-icon> Flujos de Trabajo
+                <mat-icon>assignment</mat-icon> Flujos de Trabajo
             </a>
             <a mat-button routerLink="/manage-permissions" routerLinkActive="active">
-            <mat-icon>assignment</mat-icon> Permisos
+                <mat-icon>assignment</mat-icon> Permisos
+            </a> -->
+            <a mat-button routerLink="/admin-configuration" routerLinkActive="active" *ngIf="user.roles?.includes('admin')">
+                <mat-icon>settings</mat-icon> Configuración OpenUP
             </a>
         </nav>
+
+        <div class="user-info">
+            <div class="user-details">
+                <mat-icon>account_circle</mat-icon>
+                <span>{{ user.username }}</span>
+            </div>
+            <button mat-button class="logout-btn" (click)="logout()">
+                <mat-icon>logout</mat-icon> Cerrar sesión
+            </button>
+        </div>
     </aside>
 
 
-	<main class="content">
+	<main class="content" [class.full-width]="!(currentUser$ | async)">
 		<router-outlet></router-outlet>
 	</main>
 </div>

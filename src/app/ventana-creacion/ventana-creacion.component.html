@@ -1,7 +1,8 @@
 <header class="header">
     <h1>Gestión de Proyectos</h1>
     <nav>
-        <button class="btn-nuevo" (click)="toggleFormulario()">Nuevo Proyecto</button>
+        <button *hasPermission="'create'" class="btn-nuevo" (click)="toggleFormulario()">Nuevo Proyecto</button>
+        <button class="btn-nuevo" (click)="openImportModal()" title="Importar proyecto desde plantilla">Importar</button>
     </nav>
 </header>
 
@@ -15,6 +16,28 @@
         <label>Identificador:
             <input type="text" [(ngModel)]="formData.identificador" name="identificador" required />
         </label>
+        <label>Configuración OpenUP:
+            <select [(ngModel)]="selectedConfigurationId" name="configuracion">
+                <option [ngValue]="null">-- Usar configuración activa --</option>
+                <option *ngFor="let config of configurations" [ngValue]="config._id">
+                    {{ config.name }} (v{{ config.version }})
+                    <span *ngIf="config.active"> - Activa</span>
+                </option>
+            </select>
+            <small style="display: block; margin-top: 5px; color: #666;">
+                Selecciona qué plantilla OpenUP usar para este proyecto. 
+                Las fases del proyecto se basarán en esta configuración.
+            </small>
+            <div *ngIf="selectedConfigurationId" style="margin-top: 10px; padding: 8px; background: #f5f5f5; border-radius: 4px;">
+                <strong style="font-size: 0.9em;">Fases que se crearán:</strong>
+                <div style="margin-top: 5px;">
+                    <span *ngFor="let phase of getSelectedConfigurationPhases(); let i = index" 
+                          style="display: inline-block; background: #2196f3; color: white; padding: 3px 8px; margin: 2px; border-radius: 3px; font-size: 0.85em;">
+                        {{ i + 1 }}. {{ phase }}
+                    </span>
+                </div>
+            </div>
+        </label>
         <label>Fecha de inicio:
             <input type="date" [(ngModel)]="formData.fechaInicio" name="fechaInicio" required />
         </label>
@@ -26,6 +49,12 @@
         </label>
         <label>Tags:
             <input type="text" [(ngModel)]="formData.tags" name="tags" placeholder="Ej: backend, urgente" />
+        </label>
+        <label>Repositorio:
+            <input type="url" [(ngModel)]="formData.repositoryUrl" name="repositoryUrl" placeholder="https://github.com/usuario/proyecto" />
+            <small style="display: block; margin-top: 5px; color: #666;">
+                URL del repositorio de código (opcional)
+            </small>
         </label>
         <div class="botones-grupo">
             <button type="submit">{{ editandoId ? 'Actualizar Proyecto' : 'Crear Proyecto' }}</button>
@@ -40,6 +69,11 @@
         <div class="detalle-header">
             <h2>{{ detalleProyecto.name }}</h2>
             <button class="btn-cerrar" (click)="cerrarDetalle()">×</button>
+        </div>
+
+        <div *ngIf="currentProjectConfiguration" class="config-badge" style="background: #e8f5e9; padding: 10px; margin-bottom: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
+            <strong>Configuración:</strong> {{ currentProjectConfiguration.name }} (v{{ currentProjectConfiguration.version }})
+            <span *ngIf="currentProjectConfiguration.active" style="color: #4caf50; margin-left: 10px;">Activa</span>
         </div>
 
         <div class="detalle-seccion">
@@ -156,6 +190,24 @@
         <div class="detalle-actions">
             <button class="btn-accion" (click)="cerrarDetalle()">Cerrar</button>
             <button class="btn-accion" *ngIf="detalleProyecto.identifier" (click)="openArtifacts(detalleProyecto.identifier)">Abrir Artefactos</button>
+            <button class="btn-accion btn-audit" (click)="openAuditModal(detalleProyecto._id)" title="Ver historial de auditoría">
+                Auditoría
+            </button>
+            <button class="btn-accion btn-members" (click)="openMembersModal(detalleProyecto._id)" title="Gestionar miembros del proyecto">
+                Miembros
+            </button>
+            <button class="btn-accion btn-close-project" 
+                    *ngIf="detalleProyecto.status !== 'closed'"
+                    (click)="openClosureModal(detalleProyecto._id, detalleProyecto.name)" 
+                    title="Cerrar proyecto">
+                Cerrar Proyecto
+            </button>
+            <button class="btn-accion btn-download-pdf" 
+                    *ngIf="detalleProyecto.status === 'closed'"
+                    (click)="downloadClosurePDF(detalleProyecto._id)" 
+                    title="Descargar documento de cierre">
+                Descargar Cierre PDF
+            </button>
         </div>
     </div>
 </section>
@@ -175,7 +227,7 @@
                 <th>Estado</th>
                 <th>Responsable</th>
                 <th>Descripción</th>
-                <th>Tags</th>
+                <!-- <th>Tags</th> -->
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -187,17 +239,19 @@
                 <td><span class="estado-badge">{{ proyecto.status }}</span></td>
                 <td>{{ proyecto.responsible || '-' }}</td>
                 <td>{{ proyecto.description || '-' }}</td>
-                <td>{{ proyecto.tags || '-' }}</td>
+                <!-- <td>{{ proyecto.tags || '-' }}</td> -->
                 <td class="acciones">
                     <button class="btn-accion btn-ver" (click)="verDetalles(proyecto._id)"
                         title="Ver detalles">Ver</button>
-                    <button class="btn-accion btn-editar" (click)="editarProyecto(proyecto._id)"
+                    <button *hasPermission="'edit'" class="btn-accion btn-editar" (click)="editarProyecto(proyecto._id)"
                         title="Editar proyecto">Editar</button>
-                    <button class="btn-accion btn-eliminar" (click)="eliminarProyecto(proyecto._id)"
+                    <button *hasPermission="'export_project'" class="btn-accion btn-quality" (click)="exportProject(proyecto._id)"
+                        title="Exportar proyecto">Exportar</button>
+                    <button *hasRole="'admin'" class="btn-accion btn-eliminar" (click)="eliminarProyecto(proyecto._id)"
                         title="Eliminar proyecto">Eliminar</button>
-                    <button class="btn-accion btn-archivar" (click)="archivarProyecto(proyecto._id)"
+                    <button *hasPermission="'edit'" class="btn-accion btn-archivar" (click)="archivarProyecto(proyecto._id)"
                         title="Archivar proyecto">Archivar</button>
-                    <button class="btn-accion btn-ver" *ngIf="proyecto.identificador" (click)="openArtifacts(proyecto.identificador)" title="Abrir artefactos">Abrir Artefactos</button>
+                    <button class="btn-accion btn-ver" *ngIf="proyecto.identifier" (click)="openArtifacts(proyecto.identifier)" title="Abrir artefactos">Abrir Artefactos</button>
                 </td>
             </tr>
         </tbody>
@@ -229,3 +283,79 @@
     [projectId]="selectedProjectIdForMicroincrement"
     (closeModal)="closeMicroincrementModal($event)"
 ></app-microincrement-modal>
+
+<!-- HU-024: Audit Viewer Modal -->
+<div class="modal" [class.visible]="mostrarAuditModal" *ngIf="mostrarAuditModal">
+    <div class="modal-contenido modal-audit">
+        <button class="btn-cerrar" (click)="closeAuditModal()">×</button>
+        <app-audit-viewer 
+            *ngIf="selectedProjectIdForAudit"
+            [projectId]="selectedProjectIdForAudit">
+        </app-audit-viewer>
+    </div>
+</div>
+
+<!-- HU-025: Project Members Modal -->
+<div class="modal" [class.visible]="mostrarMembersModal" *ngIf="mostrarMembersModal">
+    <div class="modal-contenido modal-members">
+        <app-project-members
+            *ngIf="selectedProjectIdForMembers"
+            [projectId]="selectedProjectIdForMembers"
+            (closeModal)="closeMembersModal()">
+        </app-project-members>
+    </div>
+</div>
+
+<!-- HU-026: Project Closure Modal -->
+<div class="modal" [class.visible]="mostrarClosureModal" *ngIf="mostrarClosureModal">
+    <div class="modal-contenido modal-closure">
+        <app-project-closure-modal
+            *ngIf="selectedProjectIdForClosure"
+            [projectId]="selectedProjectIdForClosure"
+            [projectName]="selectedProjectNameForClosure"
+            (closeModal)="closeClosureModal($event)">
+        </app-project-closure-modal>
+    </div>
+</div>
+
+<!-- HU-023: Import Project Modal -->
+<div class="modal" [class.visible]="showImportModal" *ngIf="showImportModal">
+    <div class="modal-contenido">
+        <button class="btn-cerrar" (click)="closeImportModal()">×</button>
+        <h2>Importar Proyecto desde Plantilla</h2>
+
+        <div class="detalle-seccion">
+            <p>Selecciona un archivo JSON exportado previamente para crear un nuevo proyecto basado en esa plantilla.</p>
+            
+            <div class="form-section">
+                <label>
+                    <strong>Archivo de Plantilla (JSON):</strong>
+                    <input type="file" accept=".json" (change)="onImportFileSelected($event)" class="form-control" />
+                    <small style="display: block; margin-top: 5px; color: #666;">
+                        Selecciona un archivo JSON exportado con la estructura del proyecto
+                    </small>
+                </label>
+
+                <div *ngIf="importFileName" style="margin-top: 10px; padding: 8px; background: #e3f2fd; border-radius: 4px;">
+                    <strong>Archivo seleccionado:</strong> {{ importFileName }}
+                </div>
+
+                <div *ngIf="importError" style="margin-top: 10px; padding: 12px; background: #fee2e2; border: 1px solid #ef4444; border-radius: 6px; color: #991b1b;">
+                    <strong>Error:</strong> {{ importError }}
+                </div>
+
+                <div *ngIf="importSuccess" style="margin-top: 10px; padding: 12px; background: #d1fae5; border: 1px solid #10b981; border-radius: 6px; color: #065f46;">
+                    <strong>Éxito:</strong> {{ importSuccess }}
+                </div>
+            </div>
+        </div>
+
+        <div class="botones-grupo">
+            <button class="btn-accion btn-editar" (click)="performImport()" [disabled]="!selectedImportFile || isImporting">
+                {{ isImporting ? 'Importando...' : 'Importar Proyecto' }}
+            </button>
+            <button class="btn-cancelar" (click)="closeImportModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+

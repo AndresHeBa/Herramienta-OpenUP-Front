@@ -9,11 +9,7 @@ export const API_URL = _IP + 'api/project';
 export const API_URL_PROGRESS = _IP + 'api/progress';
 export const API_URL_MICROINCREMENT = _IP + 'api/microincrement';
 export const API_URL_ITERACION = _IP + 'api/iteracion';
-
-const httpOptions = {
-  headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-  body: {}
-};
+export const API_URL_PLAN = _IP + 'api/plan';
 
 @Injectable({
   providedIn: 'root'
@@ -37,25 +33,67 @@ export class MainService {
     description: string,
     responsible: string,
     tags: string[],
-    active: boolean) {
-    const body = {
+    phases: string[],
+    configurationId: string | null,
+    active: boolean,
+    repositoryUrl?: string) {
+    const body: any = {
       "projectName": projectName,
       "projectIdentifier": projectIdentifier,
       "startDate": startDate,
       "description": description,
       "responsible": responsible,
       "tags": tags,
+      "phases": phases,
       "active": active,
     };
-    return this.http.post<any>(`${API_URL}/postProject`, body, httpOptions);
+    
+    if (configurationId) {
+      body.configurationId = configurationId;
+    }
+    
+    // HU-022: Add repository information
+    if (repositoryUrl) {
+      body.repositoryUrl = repositoryUrl;
+      body.repositoryType = 'git';
+    }
+    
+    return this.http.post<any>(`${API_URL}/postProject`, body);
+  }
+
+  updateProject(
+    projectId: string,
+    projectName: string,
+    projectIdentifier: string,
+    startDate: string,
+    description: string,
+    responsible: string,
+    tags: string[],
+    repositoryUrl?: string
+  ) {
+    const body: any = {
+      "_id": projectId,
+      "name": projectName,
+      "identifier": projectIdentifier,
+      "startDate": startDate,
+      "description": description,
+      "responsible": responsible,
+      "tags": tags
+    };
+    
+    if (repositoryUrl) {
+      body.repositoryUrl = repositoryUrl;
+    }
+    
+    return this.http.put<any>(`${API_URL}/updateProject`, body);
   }
 
   deactivateProject(strProjectId: string) {
-    return this.http.put<any>(`${API_URL}/deactivateProject/${strProjectId}`, {}, httpOptions);
+    return this.http.put<any>(`${API_URL}/deactivateProject/${strProjectId}`, {});
   }
 
   postProgress(progressData: any) {
-    return this.http.post<any>(`${API_URL_PROGRESS}/postProgress`, progressData, httpOptions);
+    return this.http.post<any>(`${API_URL_PROGRESS}/postProgress`, progressData);
   }
 
   getProgress(projectId: string) {
@@ -67,7 +105,7 @@ export class MainService {
       _id: progressId,
       updates: updates
     };
-    return this.http.put<any>(`${API_URL_PROGRESS}/updateProgress`, body, httpOptions);
+    return this.http.put<any>(`${API_URL_PROGRESS}/updateProgress`, body);
   }
 
   getSummary(projectId: string) {
@@ -79,7 +117,7 @@ export class MainService {
   }
 
   postMicroincrement(microincremento: Omit<Microincremento, '_id' | 'status' | 'creationDate'>) {
-    return this.http.post<any>(`${API_URL_MICROINCREMENT}/postMicroincrement`, microincremento, httpOptions);
+    return this.http.post<any>(`${API_URL_MICROINCREMENT}/postMicroincrement`, microincremento);
   }
 
   getMicroincrementList(projectId: string, iteration?: string, deliverable?: string, author?: string) {
@@ -126,7 +164,7 @@ export class MainService {
       "blockers": blockers || "",
       "observations": observations || ""
     };
-    return this.http.post<any>(`${API_URL_ITERACION}/postInteracion`, body, httpOptions);
+    return this.http.post<any>(`${API_URL_ITERACION}/postInteracion`, body);
   }
 
   // READ - Obtener todas las iteraciones de un proyecto
@@ -156,8 +194,7 @@ export class MainService {
   ) {
     return this.http.put<any>(
       `${API_URL_ITERACION}/putIteracion/${projectId}/${iterationName}`, 
-      updates, 
-      httpOptions
+      updates
     );
   }
 
@@ -166,16 +203,54 @@ export class MainService {
     const body = { tasks };
     return this.http.patch<any>(
       `${API_URL_ITERACION}/updateProgress/${projectId}/${iterationName}`, 
-      body, 
-      httpOptions
+      body
     );
   }
 
   // DELETE - Eliminar iteración
   deleteIteracion(projectId: string, iterationName: string) {
     return this.http.delete<any>(
-      `${API_URL_ITERACION}/deleteIteracion/${projectId}/${iterationName}`, 
-      httpOptions
+      `${API_URL_ITERACION}/deleteIteracion/${projectId}/${iterationName}`
     );
+  }
+
+  // ==================== PLAN CRUD ====================
+
+  // CREATE - Crear plan de proyecto
+  postPlan(
+    projectId: string,
+    objectives: string,
+    scope: string,
+    initialSchedule: any,
+    phaseResponsibles: any,
+    milestones: any[],
+    observations: string,
+    version: string
+  ) {
+    const body = {
+      projectId,
+      objectives,
+      scope,
+      initialSchedule,
+      phaseResponsibles,
+      milestones,
+      observations,
+      version
+    };
+    return this.http.post<any>(`${API_URL_PLAN}/postPlan`, body);
+  }
+
+  // READ - Obtener plan de proyecto
+  getPlan(projectId: string) {
+    return this.http.get<any>(`${API_URL_PLAN}/getPlan/${projectId}`);
+  }
+
+  // UPDATE - Actualizar plan
+  updatePlan(planId: string, updates: any) {
+    const body = {
+      _id: planId,
+      updates
+    };
+    return this.http.put<any>(`${API_URL_PLAN}/updatePlan`, body);
   }
 }

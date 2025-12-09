@@ -6,13 +6,6 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-:host {
-    display: block;
-    background: #f5f6fa;
-    color: #333;
-    padding: 20px;
-}
-
 /* Header */
 .header {
     background: linear-gradient(135deg, #1f2937 0%, #111827 100%);

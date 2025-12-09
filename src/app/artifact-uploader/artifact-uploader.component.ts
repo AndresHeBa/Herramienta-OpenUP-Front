@@ -2,13 +2,17 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { WorkflowService } from '../service/workflow.service';
+import { ConfigurationService } from '../service/configuration.service';
 import { ActiveProjectService } from '../service/active-project.service';
 import { ArtifactService } from '../service/artifact.service';
+import { BuildService } from '../service/build.service';
 import { finalize } from 'rxjs/operators';
 // PDF generation for history export
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { CommonModule } from '@angular/common';
+import { QualityManagementComponent } from '../quality-management/quality-management.component';
+import { OpenUPConfiguration } from '../models/openup-configuration.model';
 
 type Phase = 'Incepción' | 'Elaboración' | 'Construcción' | 'Transición';
 
@@ -17,7 +21,7 @@ type Phase = 'Incepción' | 'Elaboración' | 'Construcción' | 'Transición';
   standalone: true,
   templateUrl: './artifact-uploader.component.html',
   styleUrls: ['./artifact-uploader.component.css'],
-  imports: [ReactiveFormsModule, FormsModule, CommonModule]
+  imports: [ReactiveFormsModule, FormsModule, CommonModule, QualityManagementComponent]
 })
 export class ArtifactUploaderComponent implements OnInit {
   form: FormGroup;
@@ -61,6 +65,7 @@ export class ArtifactUploaderComponent implements OnInit {
   };
 
   artifacts: any[] = [];
+  allProjectArtifacts: any[] = []; // HU-020: All artifacts from all phases
   uploadProgress = 0;
   uploading = false;
   errorMessage = '';
@@ -81,7 +86,45 @@ export class ArtifactUploaderComponent implements OnInit {
   selectedWorkflowByType: Record<string, string> = {};
   selectedStateByType: Record<string, string> = {};
 
-  constructor(private fb: FormBuilder, private svc: ArtifactService, private route: ActivatedRoute, private activeProject: ActiveProjectService, private router: Router, private workflowSvc: WorkflowService) {
+  // Quality management state
+  showQualitySection = false;
+  selectedArtifactForQuality: any = null;
+
+  // Project configuration
+  projectConfiguration: OpenUPConfiguration | null = null;
+
+  // HU-020: Reassign artifacts modal state
+  reassignModalIndex: number | null = null;
+  reassignTargetPhase: Phase | null = null;
+  reassignReason = '';
+  movementHistory: any[] = [];
+  showMovementHistory = false;
+  isReassigning = false;
+
+  // HU-022: Builds management state
+  buildsModalIndex: number | null = null;
+  buildsList: any[] = [];
+  projectRepositoryUrl: string | null = null;
+  isRegisteringBuild = false;
+  buildsCountCache: Record<string, number> = {};
+  newBuild = {
+    buildId: '',
+    commitHash: '',
+    status: 'success',
+    buildDate: '',
+    logs: ''
+  };
+
+  constructor(
+    private fb: FormBuilder, 
+    private svc: ArtifactService, 
+    private route: ActivatedRoute, 
+    private activeProject: ActiveProjectService, 
+    private router: Router, 
+    private workflowSvc: WorkflowService,
+    private configService: ConfigurationService,
+    private buildService: BuildService
+  ) {
     this.form = this.fb.group({
       artifactType: [''],
       phase: [this.currentPhase, Validators.required],
@@ -107,8 +150,23 @@ export class ArtifactUploaderComponent implements OnInit {
   private createArtifactFieldsForPhase() {
     // clear existing
     while (this.artifactFields.length) this.artifactFields.removeAt(0);
-    const list = this.requiredArtifactsMap[this.currentPhase] || [];
-    list.forEach(type => {
+    
+    // Start with predefined types for this phase
+    const predefinedTypes = this.requiredArtifactsMap[this.currentPhase] || [];
+    
+    // Add types from actually uploaded artifacts in this phase
+    const uploadedTypes = [...new Set(
+      this.artifacts
+        .filter(a => a.phase === this.currentPhase)
+        .map(a => a.artifactType)
+    )];
+    
+    // Combine: predefined types + uploaded types (avoiding duplicates)
+    const allTypes = [...new Set([...predefinedTypes, ...uploadedTypes])];
+    
+    console.log(`📋 Phase ${this.currentPhase}: ${predefinedTypes.length} predefined + ${uploadedTypes.length} uploaded = ${allTypes.length} total types`);
+    
+    allTypes.forEach(type => {
       this.artifactFields.push(this.fb.group({
         artifactType: [type],
         file: [null],
@@ -128,7 +186,7 @@ export class ArtifactUploaderComponent implements OnInit {
       const projectId = params.get('projectId');
       if (projectId) {
         this.projectId = projectId;
-        this.loadArtifacts();
+        this.loadProjectConfiguration();
       }
     });
 
@@ -136,17 +194,15 @@ export class ArtifactUploaderComponent implements OnInit {
     this.activeProject.getActiveProject().subscribe(id => {
       if (id) {
         this.projectId = id;
-        this.loadArtifacts();
+        this.loadProjectConfiguration();
       }
     });
     // if there's already a current active project in service, load it
     const cur = this.activeProject.getCurrent();
     if (cur) {
       this.projectId = cur;
-      this.loadArtifacts();
+      this.loadProjectConfiguration();
     }
-    // initialize per-type fields for the initial phase by loading required artifact types from server
-    this.loadRequiredArtifactTypes();
     // Load workflows for HU-012 linking
     this.loadWorkflows();
   }
@@ -161,15 +217,120 @@ export class ArtifactUploaderComponent implements OnInit {
   }
 
   loadWorkflows() {
+    // If project configuration has workflows, use those
+    if (this.projectConfiguration?.workflows && this.projectConfiguration.workflows.length > 0) {
+      this.workflows = this.projectConfiguration.workflows.filter(w => w.active !== false);
+      console.log('✅ Using workflows from project configuration:', this.workflows);
+      return;
+    }
+
+    // Otherwise, load from backend (which should use adapter to get active config workflows)
     this.workflowSvc.getWorkflows().subscribe({
       next: (res: any) => {
         this.workflows = this.toArray(res);
+        console.log('✅ Workflows loaded from backend:', this.workflows);
       },
       error: () => {
         console.warn('No se pudieron cargar los flujos de trabajo');
         this.workflows = [];
       }
     });
+  }
+
+  loadProjectConfiguration() {
+    if (!this.projectId) {
+      console.warn('No project ID available to load configuration');
+      this.loadRequiredArtifactTypes();
+      return;
+    }
+
+    console.log('🔍 Loading configuration for project:', this.projectId);
+    this.configService.getProjectConfiguration(this.projectId).subscribe({
+      next: (response) => {
+        console.log('📦 Configuration response:', response);
+        if (response && response.data) {
+          this.projectConfiguration = response.data;
+          console.log('✅ Project configuration loaded for artifacts:', this.projectConfiguration);
+          
+          // Update phases from configuration
+          this.updatePhasesFromConfiguration();
+          
+          // Update artifact types from configuration
+          this.updateArtifactTypesFromConfiguration();
+          
+          // Load workflows from configuration
+          this.loadWorkflows();
+          
+          // Load artifacts after configuration is loaded
+          this.loadArtifacts();
+        } else {
+          console.warn('⚠️ No configuration data in response:', response);
+          this.loadRequiredArtifactTypes();
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error loading project configuration:', error);
+        console.error('Error details:', {
+          status: error.status,
+          message: error.message,
+          error: error.error
+        });
+        // Fallback to default behavior
+        this.loadRequiredArtifactTypes();
+      }
+    });
+  }
+
+  updatePhasesFromConfiguration() {
+    if (!this.projectConfiguration || !this.projectConfiguration.phases || this.projectConfiguration.phases.length === 0) {
+      console.log('Using default phases');
+      return;
+    }
+
+    // Extract phase names from configuration, sorted by order
+    const configPhases = this.projectConfiguration.phases
+      .sort((a, b) => a.order - b.order)
+      .map(phase => phase.name as Phase);
+
+    if (configPhases.length > 0) {
+      this.phases = configPhases;
+      // Reset current phase index if needed
+      if (this.currentPhaseIndex >= this.phases.length) {
+        this.currentPhaseIndex = 0;
+      }
+      this.currentPhase = this.phases[this.currentPhaseIndex];
+      console.log('✅ Phases updated from configuration:', this.phases);
+    }
+  }
+
+  updateArtifactTypesFromConfiguration() {
+    if (!this.projectConfiguration || !this.projectConfiguration.artifactTypes || this.projectConfiguration.artifactTypes.length === 0) {
+      console.log('No artifact types in configuration, using defaults');
+      this.loadRequiredArtifactTypes();
+      return;
+    }
+
+    // Group artifact types by phase
+    const grouped: Record<string, string[]> = {};
+    
+    // Initialize with empty arrays for all phases
+    this.phases.forEach(phase => {
+      grouped[phase] = [];
+    });
+
+    // Group artifacts by their phase
+    this.projectConfiguration.artifactTypes.forEach(artifact => {
+      if (artifact.phase && grouped[artifact.phase]) {
+        grouped[artifact.phase].push(artifact.name);
+      }
+    });
+
+    // Update the map with configuration data
+    this.requiredArtifactsMap = grouped as Record<Phase, string[]>;
+    console.log('✅ Artifact types updated from configuration:', this.requiredArtifactsMap);
+
+    // Recreate fields for current phase
+    this.createArtifactFieldsForPhase();
   }
 
   // Load required artifact types from backend and group them by phase
@@ -702,10 +863,12 @@ export class ArtifactUploaderComponent implements OnInit {
     if (!this.projectId) {
       console.warn('loadArtifacts: no projectId set yet');
       this.artifacts = [];
+      this.allProjectArtifacts = [];
       return;
     }
     this.isLoadingArtifacts = true;
 
+    // Load artifacts for current phase
     this.svc.getArtifacts(this.projectId, this.currentPhase).subscribe({
       next: (res: any) => {
         // Support multiple API response shapes used by backend:
@@ -718,11 +881,39 @@ export class ArtifactUploaderComponent implements OnInit {
         if (!Array.isArray(list)) {
           console.warn('loadArtifacts: unexpected response shape, assigned empty array', res);
         }
+        
+        // HU-020: Load ALL project artifacts (all phases) to detect moved artifacts
+        this.loadAllProjectArtifacts();
+        
+        // HU-020: Recreate artifact fields to include uploaded types (for moved artifacts)
+        this.createArtifactFieldsForPhase();
+        
+        // HU-022: Load builds counts for all artifacts
+        this.loadBuildsCountsForCurrentPhase();
+        
         this.isLoadingArtifacts = false;
       },
       error: (err) => {
         console.error('Error loading artifacts:', err);
         this.isLoadingArtifacts = false;
+      }
+    });
+  }
+
+  // HU-020: Load all artifacts from all phases to detect movements
+  private loadAllProjectArtifacts() {
+    if (!this.projectId) return;
+    
+    // Load artifacts without phase filter (backend should support this)
+    this.svc.getArtifacts(this.projectId, '').subscribe({
+      next: (res: any) => {
+        const list = res?.Result || res?.result || res?.artifacts || res?.data || res;
+        this.allProjectArtifacts = Array.isArray(list) ? list : [];
+        console.log(`📦 Loaded ${this.allProjectArtifacts.length} total artifacts from all phases`);
+      },
+      error: (err) => {
+        console.error('Error loading all project artifacts:', err);
+        this.allProjectArtifacts = [];
       }
     });
   }
@@ -756,6 +947,40 @@ export class ArtifactUploaderComponent implements OnInit {
     }, list[0]);
   }
 
+  // HU-020: Get artifact in any phase (for checking if moved)
+  private getArtifactInAnyPhase(type: string): any {
+    // Search in all loaded artifacts, not just current phase
+    const allArtifacts = this.allProjectArtifacts.filter(a => a.artifactType === type);
+    if (!allArtifacts.length) return undefined;
+    return allArtifacts.reduce((best, cur) => {
+      const bv = Number(best.version) || 0;
+      const cv = Number(cur.version) || 0;
+      return cv > bv ? cur : best;
+    }, allArtifacts[0]);
+  }
+
+  // HU-020: Check if artifact was moved to another phase
+  wasArtifactMoved(type: string): boolean {
+    const predefinedTypes = this.requiredArtifactsMap[this.currentPhase] || [];
+    // Only predefined types can be "moved away"
+    if (!predefinedTypes.includes(type)) return false;
+    
+    // Check if artifact exists in current phase
+    const inCurrentPhase = this.artifacts.some(a => a.artifactType === type && a.phase === this.currentPhase);
+    if (inCurrentPhase) return false;
+    
+    // Check if exists in other phases
+    const inOtherPhase = this.allProjectArtifacts.some(a => a.artifactType === type && a.phase !== this.currentPhase);
+    return inOtherPhase;
+  }
+
+  // HU-020: Get the phase where artifact was moved to
+  getMovedToPhase(type: string): string | null {
+    const artifact = this.getArtifactInAnyPhase(type);
+    if (!artifact || artifact.phase === this.currentPhase) return null;
+    return artifact.phase;
+  }
+
   getLatestStatusForType(type: string): string {
     // Keep for compatibility; now prefer currentState
     const art = this.getLatestArtifactOfType(type);
@@ -765,6 +990,30 @@ export class ArtifactUploaderComponent implements OnInit {
   getLatestVersionForType(type: string): number | undefined {
     const art = this.getLatestArtifactOfType(type);
     return art ? (Number(art.version) || undefined) : undefined;
+  }
+
+  // HU-020: Check if artifact type was moved from another phase (not in predefined list)
+  isMovedArtifactType(type: string): boolean {
+    const predefinedTypes = this.requiredArtifactsMap[this.currentPhase] || [];
+    return !predefinedTypes.includes(type);
+  }
+
+  // HU-020: Get filename of moved artifact (from any phase)
+  getMovedArtifactFilename(type: string): string {
+    const artifact = this.getArtifactInAnyPhase(type);
+    return artifact ? (this.getFilenameFromArtifact(artifact) || '-') : '-';
+  }
+
+  // HU-020: Get author of moved artifact
+  getMovedArtifactAuthor(type: string): string {
+    const artifact = this.getArtifactInAnyPhase(type);
+    return artifact?.author || '-';
+  }
+
+  // HU-020: Get version of moved artifact
+  getMovedArtifactVersion(type: string): number | undefined {
+    const artifact = this.getArtifactInAnyPhase(type);
+    return artifact ? (Number(artifact.version) || undefined) : undefined;
   }
 
 
@@ -804,22 +1053,321 @@ export class ArtifactUploaderComponent implements OnInit {
     this.router.navigate(['/']);
   }
 
+  // Quality Management Integration
+  openQualityForArtifact(artifactType: string) {
+    const artifact = this.getLatestArtifactOfType(artifactType);
+    if (!artifact) {
+      this.errorMessage = 'No hay artefacto subido para gestionar calidad';
+      return;
+    }
+    
+    this.selectedArtifactForQuality = {
+      ...artifact,
+      artifactType: artifactType,
+      projectId: this.projectId
+    };
+    this.showQualitySection = true;
+  }
+
+  closeQualitySection() {
+    this.showQualitySection = false;
+    this.selectedArtifactForQuality = null;
+  }
+
+  // HU-020: Open reassign modal for an artifact
+  openReassignModal(index: number) {
+    this.reassignModalIndex = index;
+    this.reassignTargetPhase = null;
+    this.reassignReason = '';
+    this.movementHistory = [];
+    this.showMovementHistory = false;
+    
+    // Load movement history
+    const artifact = this.getArtifactAtIndex(index);
+    if (artifact?._id) {
+      this.svc.getArtifactMovementHistory(artifact._id).subscribe({
+        next: (res: any) => {
+          if (res?.status === 200) {
+            this.movementHistory = res.data || [];
+          }
+        },
+        error: (err) => console.error('Error loading movement history:', err)
+      });
+    }
+  }
+
+  // HU-020: Close reassign modal
+  closeReassignModal() {
+    this.reassignModalIndex = null;
+    this.reassignTargetPhase = null;
+    this.reassignReason = '';
+    this.movementHistory = [];
+    this.showMovementHistory = false;
+  }
+
+  // HU-020: Toggle movement history visibility
+  toggleMovementHistory() {
+    this.showMovementHistory = !this.showMovementHistory;
+  }
+
+  // HU-020: Get available phases for reassignment (exclude current phase)
+  getAvailablePhases(): Phase[] {
+    return this.phases.filter(p => p !== this.currentPhase);
+  }
+
+  // HU-020: Perform artifact reassignment
+  performReassignment() {
+    if (this.reassignModalIndex === null || !this.reassignTargetPhase) {
+      this.errorMessage = 'Debe seleccionar una fase destino';
+      return;
+    }
+
+    const artifact = this.getArtifactAtIndex(this.reassignModalIndex);
+    if (!artifact?._id) {
+      this.errorMessage = 'No se encontró el artefacto';
+      return;
+    }
+
+    // Get user ID (adjust based on your auth implementation)
+    const userId = sessionStorage.getItem('userId') || 'anonymous';
+
+    if (!this.reassignReason.trim()) {
+      this.errorMessage = 'Debe proporcionar una razón para el movimiento';
+      return;
+    }
+
+    // Show confirmation dialog
+    const confirmMsg = `¿Está seguro de mover "${artifact.artifactType}" desde "${this.currentPhase}" hacia "${this.reassignTargetPhase}"?\n\nRazón: ${this.reassignReason}`;
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+
+    this.isReassigning = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.svc.reassignArtifactPhase(artifact._id, this.reassignTargetPhase, userId, this.reassignReason).subscribe({
+      next: (res: any) => {
+        this.isReassigning = false;
+        
+        if (res?.status === 200) {
+          this.successMessage = `Artefacto movido exitosamente a ${this.reassignTargetPhase}`;
+          this.closeReassignModal();
+          
+          // Reload artifacts to reflect the change
+          this.loadArtifacts();
+        } else if (res?.requiresConfirmation) {
+          // Handle validation warnings
+          const warningMsg = `${res.message}\n\nAdvertencias:\n${(res.warnings || []).join('\n')}\n\n¿Desea continuar?`;
+          if (confirm(warningMsg)) {
+            // Retry with force flag (if backend supports it)
+            this.performReassignmentWithForce();
+          }
+        } else {
+          this.errorMessage = res?.message || 'Error al reasignar artefacto';
+        }
+      },
+      error: (err) => {
+        this.isReassigning = false;
+        this.errorMessage = err?.error?.message || 'Error al reasignar artefacto';
+        console.error('Reassignment error:', err);
+      }
+    });
+  }
+
+  // HU-020: Force reassignment (bypass warnings)
+  performReassignmentWithForce() {
+    // Implementation would include force parameter in the API call
+    // For now, just show message
+    this.errorMessage = 'La reasignación forzada requiere permisos adicionales';
+  }
+
+  // Helper: Get artifact at specific index in current view
+  private getArtifactAtIndex(index: number): any | null {
+    const field = this.artifactFields.at(index);
+    if (!field) return null;
+    
+    const type = field.value.artifactType;
+    const artifacts = this.artifacts.filter(
+      a => a.artifactType === type && a.phase === this.currentPhase
+    );
+    
+    return artifacts.length > 0 ? artifacts[0] : null;
+  }
+
   // For Transition: validate checklist before closing
   validateTransitionAndClose() {
     if (this.currentPhase !== 'Transición') {
       this.errorMessage = 'Validación de cierre solo aplicable en Transición';
       return;
     }
+    const required = this.requiredArtifactsMap['Transición'].filter((rt: string) => {
+      const art = this.getLatestArtifactOfType(rt);
+      return art?.isMandatory;
+    });
+    const missing = required.filter((rt: string) => !this.hasLatestArtifact(rt));
+    if (missing.length > 0) {
+      alert(`Faltan artefactos obligatorios de Transición:\n${missing.join('\n')}`);
+      return;
+    }
+    alert('Transición validada. El proyecto puede cerrarse.');
+  }
 
-    this.svc.validateTransition(this.projectId).subscribe({
-      next: (res) => {
-        if (res?.status === 200) {
-          this.successMessage = 'Proyecto listo para cierre: todos los documentos obligatorios aprobados';
-        } else {
-          this.errorMessage = res?.data || 'Faltan documentos para cierre';
+  // ==================== HU-022: BUILDS MANAGEMENT ====================
+
+  // Open builds modal for artifact
+  openBuildsModal(index: number) {
+    this.buildsModalIndex = index;
+    const artifactType = this.artifactFields.at(index).value.artifactType;
+    const artifact = this.getLatestArtifactOfType(artifactType);
+    
+    if (artifact && artifact._id) {
+      this.loadBuildsForArtifact(artifact._id);
+    }
+    
+    // Load project repository URL
+    this.loadProjectRepository();
+    
+    // Reset new build form
+    this.resetNewBuildForm();
+  }
+
+  // Close builds modal
+  closeBuildsModal() {
+    this.buildsModalIndex = null;
+    this.buildsList = [];
+    this.resetNewBuildForm();
+  }
+
+  // Load builds for artifact
+  loadBuildsForArtifact(artifactId: string) {
+    this.buildService.getBuildsForArtifact(artifactId).subscribe({
+      next: (response) => {
+        if (response && response.Result) {
+          this.buildsList = response.Result.builds || [];
+          console.log(`Loaded ${this.buildsList.length} builds for artifact`);
         }
       },
-      error: (err) => { this.errorMessage = err?.error?.data || 'Error validando cierre'; }
+      error: (err) => {
+        console.error('Error loading builds:', err);
+        this.errorMessage = 'Error al cargar builds';
+      }
     });
+  }
+
+  // Load project repository info
+  loadProjectRepository() {
+    if (!this.projectId) return;
+    
+    this.svc.getProject(this.projectId).subscribe({
+      next: (response) => {
+        console.log('Project response for repository:', response);
+        if (response && response.Result) {
+          // repositoryUrl is in the Result object along with other project fields
+          const project = response.Result;
+          this.projectRepositoryUrl = project.repositoryUrl || project.repository_url || null;
+          console.log('Repository URL loaded:', this.projectRepositoryUrl);
+        }
+      },
+      error: (err) => {
+        console.error('Error loading project repository:', err);
+      }
+    });
+  }
+
+  // Register new build
+  registerBuild() {
+    if (!this.newBuild.buildId || this.buildsModalIndex === null) {
+      this.errorMessage = 'Build ID es requerido';
+      return;
+    }
+
+    const artifactType = this.artifactFields.at(this.buildsModalIndex).value.artifactType;
+    const artifact = this.getLatestArtifactOfType(artifactType);
+    
+    if (!artifact || !artifact._id) {
+      this.errorMessage = 'No se pudo obtener el artefacto';
+      return;
+    }
+
+    this.isRegisteringBuild = true;
+
+    const buildData = {
+      projectId: this.projectId,
+      buildId: this.newBuild.buildId,
+      commitHash: this.newBuild.commitHash || undefined,
+      buildDate: this.newBuild.buildDate || new Date().toISOString(),
+      status: this.newBuild.status as 'success' | 'failure' | 'pending' | 'in_progress',
+      logs: this.newBuild.logs || undefined,
+      artifactId: artifact._id
+    };
+
+    this.buildService.registerBuild(buildData).subscribe({
+      next: (response) => {
+        this.isRegisteringBuild = false;
+        if (response && response.intCode === 200) {
+          this.successMessage = 'Build registrado exitosamente';
+          this.resetNewBuildForm();
+          // Reload builds list
+          this.loadBuildsForArtifact(artifact._id);
+          // Update builds count cache
+          this.buildsCountCache[artifactType] = (this.buildsCountCache[artifactType] || 0) + 1;
+        } else {
+          this.errorMessage = response?.data || 'Error al registrar build';
+        }
+      },
+      error: (err) => {
+        this.isRegisteringBuild = false;
+        this.errorMessage = err?.error?.data || 'Error al registrar build';
+        console.error('Error registering build:', err);
+      }
+    });
+  }
+
+  // Reset new build form
+  resetNewBuildForm() {
+    this.newBuild = {
+      buildId: '',
+      commitHash: '',
+      status: 'success',
+      buildDate: '',
+      logs: ''
+    };
+  }
+
+  // Show build logs in alert (or could open another modal)
+  showBuildLogs(build: any) {
+    alert(`Logs del build ${build.buildId}:\n\n${build.logs}`);
+  }
+
+  // Load builds counts for all artifacts in current phase
+  loadBuildsCountsForCurrentPhase() {
+    // Clear cache
+    this.buildsCountCache = {};
+    
+    // Get unique artifact types with their latest artifact IDs
+    const artifactTypes = this.artifactFields.controls.map(ctrl => ctrl.value.artifactType);
+    
+    artifactTypes.forEach(type => {
+      const artifact = this.getLatestArtifactOfType(type);
+      if (artifact && artifact._id) {
+        this.buildService.getBuildsForArtifact(artifact._id).subscribe({
+          next: (response) => {
+            if (response && response.Result) {
+              this.buildsCountCache[type] = (response.Result.builds || []).length;
+            }
+          },
+          error: (err) => {
+            console.error(`Error loading builds count for ${type}:`, err);
+            this.buildsCountCache[type] = 0;
+          }
+        });
+      }
+    });
+  }
+
+  // Get builds count for artifact type
+  getBuildsCountForType(artifactType: string): number {
+    return this.buildsCountCache[artifactType] || 0;
   }
 }

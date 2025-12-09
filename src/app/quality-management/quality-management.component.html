@@ -1,0 +1,370 @@
+<div class="quality-container">
+  <div class="quality-header">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <h2>Gestión de Calidad</h2>
+      <span *ngIf="artifactData" class="artifact-badge">{{ artifactData.artifactType }} (v{{ artifactData.version }})</span>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <div class="tab-navigation">
+        <button 
+          [class.active]="activeTab === 'testCases'" 
+          (click)="activeTab = 'testCases'">
+          Casos de Prueba
+        </button>
+        <button 
+          [class.active]="activeTab === 'defects'" 
+          (click)="activeTab = 'defects'">
+          Defectos
+        </button>
+      </div>
+      <button *ngIf="artifactData" class="btn-close-section" (click)="closeSection.emit()">✕ Cerrar</button>
+    </div>
+  </div>
+
+  <!-- TEST CASES TAB -->
+  <div *ngIf="activeTab === 'testCases'" class="tab-content">
+    <div class="action-bar">
+      <button class="btn-primary" (click)="toggleTestCaseForm()">
+        {{ showTestCaseForm ? 'Cancelar' : 'Nuevo Caso de Prueba' }}
+      </button>
+    </div>
+
+    <!-- Test Case Form -->
+    <div *ngIf="showTestCaseForm" class="form-container">
+      <h3>Crear Caso de Prueba</h3>
+      <form (ngSubmit)="saveTestCase()">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" [(ngModel)]="testCaseForm.name" name="name" required>
+        </div>
+
+        <div class="form-group">
+          <label>Descripción *</label>
+          <textarea [(ngModel)]="testCaseForm.description" name="description" rows="3" required></textarea>
+        </div>
+
+        <div class="form-row" *ngIf="!artifactData">
+          <div class="form-group">
+            <label>ID de Artefacto</label>
+            <input type="text" [(ngModel)]="testCaseForm.artifactId" name="artifactId">
+          </div>
+          <div class="form-group">
+            <label>Nombre de Artefacto</label>
+            <input type="text" [(ngModel)]="testCaseForm.artifactName" name="artifactName">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Precondiciones</label>
+          <textarea [(ngModel)]="testCaseForm.preconditions" name="preconditions" rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Prioridad</label>
+          <select [(ngModel)]="testCaseForm.priority" name="priority">
+            <option value="Alta">Alta</option>
+            <option value="Media">Media</option>
+            <option value="Baja">Baja</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Pasos de Prueba</label>
+          <div *ngFor="let step of testCaseForm.steps; let i = index" class="step-container">
+            <div class="step-header">
+              <strong>Paso {{ step.stepNumber }}</strong>
+              <button type="button" class="btn-remove" (click)="removeStep(i)" *ngIf="testCaseForm.steps.length > 1">
+                ✕
+              </button>
+            </div>
+            <input type="text" [(ngModel)]="step.action" [name]="'action'+i" placeholder="Acción" required>
+            <input type="text" [(ngModel)]="step.expectedResult" [name]="'expected'+i" placeholder="Resultado esperado">
+          </div>
+          <button type="button" class="btn-secondary" (click)="addStep()">+ Agregar Paso</button>
+        </div>
+
+        <div class="form-group">
+          <label>Resultado Esperado General *</label>
+          <textarea [(ngModel)]="testCaseForm.expectedResult" name="expectedResult" rows="2" required></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Guardar</button>
+          <button type="button" class="btn-secondary" (click)="toggleTestCaseForm()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Test Cases List -->
+    <div class="test-cases-list">
+      <div *ngFor="let testCase of testCases" class="test-case-card">
+        <div class="card-header">
+          <h4>{{ testCase.name }}</h4>
+          <span class="priority-badge" [class]="'priority-' + testCase.priority.toLowerCase()">
+            {{ testCase.priority }}
+          </span>
+        </div>
+        <p class="description">{{ testCase.description }}</p>
+        
+        <div class="test-info">
+          <span><strong>Artefacto:</strong> {{ testCase.artifactName || 'N/A' }}</span>
+          <span><strong>Creado por:</strong> {{ testCase.createdBy }}</span>
+        </div>
+
+        <div class="execution-summary">
+          <strong>Última ejecución:</strong>
+          <span *ngIf="getLastExecution(testCase._id) as lastExec; else noExecution">
+            {{ lastExec.executedAt | date:'short' }} - 
+            <span [class]="getStatusClass(lastExec.status)">{{ lastExec.status }}</span>
+          </span>
+          <ng-template #noExecution>
+            <span class="status-not-executed">No ejecutado</span>
+          </ng-template>
+        </div>
+
+        <button class="btn-execute" (click)="openExecutionForm(testCase)">
+          Ejecutar Prueba
+        </button>
+      </div>
+
+      <div *ngIf="testCases.length === 0" class="empty-state">
+        No hay casos de prueba registrados
+      </div>
+    </div>
+  </div>
+
+  <!-- DEFECTS TAB -->
+  <div *ngIf="activeTab === 'defects'" class="tab-content">
+    <div class="action-bar">
+      <button class="btn-primary" (click)="toggleDefectForm()">
+        {{ showDefectForm ? 'Cancelar' : 'Nuevo Defecto' }}
+      </button>
+    </div>
+
+    <!-- Defect Form -->
+    <div *ngIf="showDefectForm" class="form-container">
+      <h3>Registrar Defecto</h3>
+      <form (ngSubmit)="saveDefect()">
+        <div class="form-group">
+          <label>Título *</label>
+          <input type="text" [(ngModel)]="defectForm.title" name="title" required>
+        </div>
+
+        <div class="form-group">
+          <label>Descripción *</label>
+          <textarea [(ngModel)]="defectForm.description" name="description" rows="4" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Severidad *</label>
+            <select [(ngModel)]="defectForm.severity" name="severity" required>
+              <option value="Crítica">Crítica</option>
+              <option value="Alta">Alta</option>
+              <option value="Media">Media</option>
+              <option value="Baja">Baja</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Prioridad *</label>
+            <select [(ngModel)]="defectForm.priority" name="priority" required>
+              <option value="Urgente">Urgente</option>
+              <option value="Alta">Alta</option>
+              <option value="Media">Media</option>
+              <option value="Baja">Baja</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Pasos para Reproducir</label>
+          <textarea [(ngModel)]="defectForm.stepsToReproduce" name="stepsToReproduce" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Entorno</label>
+          <input type="text" [(ngModel)]="defectForm.environment" name="environment" 
+                 placeholder="Ej: Windows 10, Chrome 120">
+        </div>
+
+        <div class="form-row" *ngIf="!artifactData">
+          <div class="form-group">
+            <label>Artefacto Relacionado</label>
+            <input type="text" [(ngModel)]="defectForm.artifactName" name="artifactName">
+          </div>
+          <div class="form-group">
+            <label>Versión</label>
+            <input type="text" [(ngModel)]="defectForm.artifactVersion" name="artifactVersion">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Asignar a (username)</label>
+          <input type="text" [(ngModel)]="defectForm.assignedTo" name="assignedTo">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Guardar</button>
+          <button type="button" class="btn-secondary" (click)="toggleDefectForm()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Defects List -->
+    <div class="defects-list">
+      <table class="defects-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Severidad</th>
+            <th>Estado</th>
+            <th>Asignado a</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let defect of defects">
+            <td>{{ defect.defectId }}</td>
+            <td>{{ defect.title }}</td>
+            <td>
+              <span class="severity-badge" [class]="getSeverityClass(defect.severity)">
+                {{ defect.severity }}
+              </span>
+            </td>
+            <td>
+              <span class="status-badge" [class]="getStatusClass(defect.status)">
+                {{ defect.status }}
+              </span>
+            </td>
+            <td>{{ defect.assignedTo || 'Sin asignar' }}</td>
+            <td>{{ defect.reportedAt | date:'short' }}</td>
+            <td>
+              <button class="btn-link" (click)="viewDefect(defect)">Ver</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="defects.length === 0" class="empty-state">
+        No hay defectos registrados
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Execution Modal -->
+<div *ngIf="showExecutionForm" class="modal-overlay" (click)="closeExecutionForm()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h3>Ejecutar Caso de Prueba</h3>
+    <h4>{{ selectedTestCase?.name }}</h4>
+    
+    <form (ngSubmit)="saveExecution()">
+      <div class="form-group">
+        <label>Resultado *</label>
+        <select [(ngModel)]="executionForm.status" name="status" required>
+          <option value="Pasó">Pasó</option>
+          <option value="Falló">Falló</option>
+          <option value="Bloqueado">Bloqueado</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Resultado Actual *</label>
+        <textarea [(ngModel)]="executionForm.actualResult" name="actualResult" rows="3" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Evidencia (URL o descripción)</label>
+        <textarea [(ngModel)]="executionForm.evidence" name="evidence" rows="2"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Iteración</label>
+        <input type="text" [(ngModel)]="executionForm.iteration" name="iteration">
+      </div>
+
+      <div class="form-group">
+        <label>Notas Adicionales</label>
+        <textarea [(ngModel)]="executionForm.notes" name="notes" rows="2"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Registrar Ejecución</button>
+        <button type="button" class="btn-secondary" (click)="closeExecutionForm()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Defect Details Modal -->
+<div *ngIf="selectedDefect" class="modal-overlay" (click)="closeDefectDetails()">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <div class="defect-header">
+      <h3>{{ selectedDefect.defectId }}: {{ selectedDefect.title }}</h3>
+      <button class="btn-close" (click)="closeDefectDetails()">✕</button>
+    </div>
+
+    <div class="defect-details">
+      <div class="detail-section">
+        <div class="detail-row">
+          <span class="severity-badge" [class]="getSeverityClass(selectedDefect.severity)">
+            {{ selectedDefect.severity }}
+          </span>
+          <span class="status-badge" [class]="getStatusClass(selectedDefect.status)">
+            {{ selectedDefect.status }}
+          </span>
+          <span class="priority-badge">Prioridad: {{ selectedDefect.priority }}</span>
+        </div>
+
+        <div class="detail-row">
+          <strong>Reportado por:</strong> {{ selectedDefect.reportedBy }}
+          <strong>Fecha:</strong> {{ selectedDefect.reportedAt | date:'medium' }}
+        </div>
+
+        <div class="detail-row" *ngIf="selectedDefect.assignedTo">
+          <strong>Asignado a:</strong> {{ selectedDefect.assignedTo }}
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h4>Descripción</h4>
+        <p>{{ selectedDefect.description }}</p>
+      </div>
+
+      <div class="detail-section" *ngIf="selectedDefect.stepsToReproduce">
+        <h4>Pasos para Reproducir</h4>
+        <p class="preformatted">{{ selectedDefect.stepsToReproduce }}</p>
+      </div>
+
+      <div class="detail-section" *ngIf="selectedDefect.environment">
+        <h4>Entorno</h4>
+        <p>{{ selectedDefect.environment }}</p>
+      </div>
+
+      <div class="detail-section" *ngIf="selectedDefect.artifactName">
+        <h4>Artefacto Relacionado</h4>
+        <p>{{ selectedDefect.artifactName }} 
+          <span *ngIf="selectedDefect.artifactVersion">(v{{ selectedDefect.artifactVersion }})</span>
+        </p>
+      </div>
+
+      <div class="status-actions" *ngIf="selectedDefect.status !== 'Cerrado'">
+        <h4>Cambiar Estado</h4>
+        <button class="btn-status" (click)="updateDefectStatus(selectedDefect!, 'En Progreso')"
+                *ngIf="selectedDefect.status === 'Abierto'">
+          En Progreso
+        </button>
+        <button class="btn-status" (click)="updateDefectStatus(selectedDefect!, 'Resuelto')"
+                *ngIf="selectedDefect.status === 'En Progreso'">
+          Resuelto
+        </button>
+        <button class="btn-status" (click)="updateDefectStatus(selectedDefect!, 'Cerrado')"
+                *ngIf="selectedDefect.status === 'Resuelto'">
+          Cerrado
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

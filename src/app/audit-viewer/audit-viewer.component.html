@@ -1,0 +1,196 @@
+<div class="audit-viewer">
+  <div class="audit-header">
+    <h2>Registro de Auditoría</h2>
+    <div class="header-actions">
+      <button class="btn-stats" (click)="loadStats()">
+        {{ showStats ? 'Ocultar Estadísticas' : 'Ver Estadísticas' }}
+      </button>
+      <button class="btn-export" (click)="exportJSON()" title="Exportar como JSON">
+        JSON
+      </button>
+      <button class="btn-export" (click)="exportCSV()" title="Exportar como CSV">
+        CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Panel -->
+  <div class="stats-panel" *ngIf="showStats && stats">
+    <h3>Estadísticas</h3>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.totalActions }}</div>
+        <div class="stat-label">Total de Acciones</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-label">Acciones por Tipo</div>
+        <div class="stat-list">
+          <div *ngFor="let stat of stats.actionTypeStats" class="stat-item">
+            <span class="stat-badge" [style.background-color]="auditService.getActionTypeColor(stat._id)">
+              {{ auditService.getActionTypeLabel(stat._id) }}
+            </span>
+            <span class="stat-count">{{ stat.count }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Entidades Afectadas</div>
+        <div class="stat-list">
+          <div *ngFor="let stat of stats.entityTypeStats" class="stat-item">
+            <span>{{ auditService.getEntityTypeLabel(stat._id) }}</span>
+            <span class="stat-count">{{ stat.count }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-panel">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Tipo de Acción:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="actionTypeFilter" 
+          placeholder="create, edit, delete..."
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>Tipo de Entidad:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="entityTypeFilter" 
+          placeholder="project, artifact..."
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>Fecha Desde:</label>
+        <input 
+          type="date" 
+          [(ngModel)]="startDateFilter" 
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>Fecha Hasta:</label>
+        <input 
+          type="date" 
+          [(ngModel)]="endDateFilter" 
+          class="filter-input"
+        />
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button class="btn-filter" (click)="applyFilters()">Aplicar Filtros</button>
+      <button class="btn-clear" (click)="clearFilters()">Limpiar</button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading" *ngIf="isLoading">
+    <p>Cargando registros de auditoría...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error" *ngIf="error && !isLoading">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Audit Logs Table -->
+  <div class="logs-container" *ngIf="!isLoading && !error">
+    <div class="logs-info">
+      <p>Mostrando {{ logs.length }} de {{ totalCount }} registros</p>
+    </div>
+
+    <table class="audit-table">
+      <thead>
+        <tr>
+          <th>Fecha/Hora</th>
+          <th>Usuario</th>
+          <th>Acción</th>
+          <th>Entidad</th>
+          <th>ID Entidad</th>
+          <th>Detalles</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of logs" class="audit-row">
+          <td class="timestamp">
+            {{ formatTimestamp(log.timestamp) }}
+          </td>
+          <td class="user-id">
+            {{ log.userId }}
+          </td>
+          <td>
+            <span 
+              class="action-badge" 
+              [style.background-color]="auditService.getActionTypeColor(log.actionType)"
+            >
+              {{ auditService.getActionTypeLabel(log.actionType) }}
+            </span>
+          </td>
+          <td>
+            <span class="entity-type">
+              {{ auditService.getEntityTypeLabel(log.entityType) }}
+            </span>
+          </td>
+          <td class="entity-id">
+            {{ log.entityId || '-' }}
+          </td>
+          <td class="details">
+            <details>
+              <summary>Ver detalles</summary>
+              <pre>{{ getDetailsString(log.details) }}</pre>
+            </details>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="logs.length === 0">
+      <p>No se encontraron registros de auditoría con los filtros aplicados.</p>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button 
+        class="btn-page" 
+        (click)="prevPage()" 
+        [disabled]="currentPage === 1"
+      >
+        « Anterior
+      </button>
+
+      <button 
+        *ngFor="let page of getPageNumbers()" 
+        class="btn-page" 
+        [class.active]="page === currentPage"
+        (click)="goToPage(page)"
+      >
+        {{ page }}
+      </button>
+
+      <button 
+        class="btn-page" 
+        (click)="nextPage()" 
+        [disabled]="currentPage === totalPages"
+      >
+        Siguiente »
+      </button>
+    </div>
+
+    <div class="page-info">
+      Página {{ currentPage }} de {{ totalPages }}
+    </div>
+  </div>
+</div>

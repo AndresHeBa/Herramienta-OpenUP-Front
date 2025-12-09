@@ -13,31 +13,39 @@ body {
     line-height: 1.6;
 }
 
-/* Header Styles */
+/* Header */
 .header {
-    background-color: #007bff;
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
     color: white;
-    padding: 1rem 2rem;
+    padding: 20px;
+    border-radius: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
 }
 
 .header h1 {
-    margin: 0;
     font-size: 1.8rem;
+    font-weight: 600;
 }
 
-.header nav .btn-nuevo {
-    background-color: #28a745;
-    color: white;
+.btn-nuevo {
+    background: #3b82f6;
     border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 5px;
+    padding: 10px 20px;
+    border-radius: 6px;
+    color: #fff;
     cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.2s ease;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.btn-nuevo:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
 .header nav .btn-nuevo:hover {

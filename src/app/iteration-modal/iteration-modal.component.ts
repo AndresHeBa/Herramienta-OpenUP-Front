@@ -18,12 +18,22 @@ export class IterationModalComponent implements OnInit {
 
   iterationForm!: FormGroup;
   isEditMode = false;
+  phases: string[] = ['Incepción', 'Elaboración', 'Construcción', 'Transición'];
 
   constructor(private fb: FormBuilder, private mainService: MainService) {}
 
   ngOnInit() {
-
+    console.log('🔍 Iteration data received:', this.iteration);
+    
     this.isEditMode = !!this.iteration;
+    
+    // Log specific fields
+    if (this.iteration) {
+      console.log('📋 Phase:', this.iteration.phase);
+      console.log('🎯 Goal:', this.iteration.goal);
+      console.log('📊 All iteration fields:', Object.keys(this.iteration));
+    }
+    
     this.iterationForm = this.fb.group({
       iteration: [this.iteration?.iteration || '', Validators.required],
       startDate: [this.iteration?.startDate || '', Validators.required],
@@ -36,7 +46,8 @@ export class IterationModalComponent implements OnInit {
       phase: [this.iteration?.phase || ''],
       active: [this.iteration?.active || true]
     });
-    console.log()
+    
+    console.log('📝 Form values after init:', this.iterationForm.value);
   }
 
   ngAfterViewInit() {
@@ -88,26 +99,54 @@ export class IterationModalComponent implements OnInit {
 
   saveIteration() {
     if (this.iterationForm.invalid) {
+      console.error('Form is invalid:', this.iterationForm.errors);
       return;
     }
 
     const formData = this.iterationForm.value;
+    console.log('💾 Saving iteration with data:', formData);
 
     if (this.isEditMode) {
       // Update
-      this.mainService.updateProgress(this.iteration!._id, formData).subscribe({
-        next: () => this.closeModal.emit(true),
-        error: (err) => console.error('Error updating iteration', err)
+      this.mainService.putIteracion(
+        this.projectId,
+        this.iteration!.iteration,
+        {
+          startDate: formData.startDate,
+          finallyDate: formData.endDate,
+          goal: formData.goal,
+          phase: formData.phase,
+          active: formData.active,
+          tasks: formData.tasks,
+          blockers: formData.blockers,
+          observations: formData.observations
+        }
+      ).subscribe({
+        next: () => {
+          console.log('✅ Iteration updated successfully');
+          this.closeModal.emit(true);
+        },
+        error: (err) => console.error('❌ Error updating iteration', err)
       });
     } else {
       // Create
-      const newIteration = {
-        ...formData,
-        projectId: this.projectId
-      };
-      this.mainService.postProgress(newIteration).subscribe({
-        next: () => this.closeModal.emit(true),
-        error: (err) => console.error('Error creating iteration', err)
+      this.mainService.postIteracion(
+        this.projectId,
+        formData.iteration,
+        formData.startDate,
+        formData.endDate,
+        formData.goal,
+        formData.phase,
+        formData.active,
+        formData.tasks,
+        formData.blockers,
+        formData.observations
+      ).subscribe({
+        next: () => {
+          console.log('✅ Iteration created successfully');
+          this.closeModal.emit(true);
+        },
+        error: (err) => console.error('❌ Error creating iteration', err)
       });
     }
   }

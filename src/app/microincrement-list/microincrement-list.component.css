@@ -27,12 +27,26 @@ h2, h3 {
 
 .form-group input[type="text"],
 .form-group input[type="date"],
+.form-group input[type="number"],
+.form-group select,
 .form-group textarea {
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box; /* Ensures padding doesn't increase total width */
+}
+
+.form-group select:disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+}
+
+.form-group small {
+  display: block;
+  color: #666;
+  font-size: 12px;
+  margin-top: 4px;
 }
 
 .microincrement-form textarea {
@@ -82,4 +96,60 @@ table tr:nth-child(even) {
 
 table tr:hover {
   background-color: #ddd;
+}
+
+.empty-message {
+  text-align: center;
+  padding: 40px 20px;
+  background: #fff;
+  border-radius: 8px;
+  border: 2px dashed #ddd;
+}
+
+.empty-message p {
+  margin: 10px 0;
+  color: #666;
+}
+
+.empty-message p:first-child {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Estilos para badges de tipo */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-tecnico {
+  background-color: #6c757d;
+  color: white;
+}
+
+.badge-funcional {
+  background-color: #28a745;
+  color: white;
+}
+
+/* Estilos para enlaces de evidencia */
+.evidence-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.evidence-link:hover {
+  text-decoration: underline;
+}
+
+.no-evidence {
+  color: #999;
+  font-style: italic;
+  font-size: 12px;
 }

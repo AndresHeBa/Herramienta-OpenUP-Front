@@ -15,11 +15,39 @@
       </div>
       <div class="form-group">
         <label for="newIteration">Iteración:</label>
-        <input id="newIteration" type="text" formControlName="iteration">
+        <select id="newIteration" formControlName="iterationId" (change)="onIterationChange($event)">
+          <option value="">Seleccionar iteración</option>
+          <option *ngFor="let iteration of iterations" [value]="iteration._id">
+            {{ iteration.iteration }} - {{ iteration.phase }}
+          </option>
+        </select>
       </div>
       <div class="form-group">
         <label for="newDeliverable">Entregable:</label>
-        <input id="newDeliverable" type="text" formControlName="deliverable">
+        <select id="newDeliverable" formControlName="deliverable" [disabled]="availableDeliverables.length === 0">
+          <option value="">Seleccionar entregable</option>
+          <option *ngFor="let deliverable of availableDeliverables" [value]="deliverable">
+            {{ deliverable }}
+          </option>
+        </select>
+        <small *ngIf="availableDeliverables.length === 0 && newMicroincrementForm.get('iterationId')?.value">
+          Selecciona primero una iteración
+        </small>
+      </div>
+      <div class="form-group">
+        <label for="newType">Tipo:</label>
+        <select id="newType" formControlName="type">
+          <option value="funcional">Funcional</option>
+          <option value="técnico">Técnico</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="newEvidence">Evidencia (archivo o enlace):</label>
+        <input id="newEvidence" type="text" formControlName="evidence" placeholder="URL o ruta del archivo">
+      </div>
+      <div class="form-group">
+        <label for="newValue">Valor (0-10):</label>
+        <input id="newValue" type="number" formControlName="value" min="0" max="10" step="1">
       </div>
       <div class="form-group">
         <label for="newDate">Fecha:</label>
@@ -42,6 +70,14 @@
         <input id="filterIteration" type="text" formControlName="iteration">
       </div>
       <div class="form-group">
+        <label for="filterType">Tipo:</label>
+        <select id="filterType" formControlName="type">
+          <option value="">Todos</option>
+          <option value="funcional">Funcional</option>
+          <option value="técnico">Técnico</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label for="filterDeliverable">Entregable:</label>
         <input id="filterDeliverable" type="text" formControlName="deliverable">
       </div>
@@ -56,29 +92,45 @@
   <!-- Microincrements List -->
   <div class="list-section">
     <h3>Lista de Microincrementos</h3>
-    <div *ngIf="microincrements.length === 0">No hay microincrementos para mostrar.</div>
+    <div *ngIf="microincrements.length === 0" class="empty-message">
+      <p>No hay microincrementos registrados para este proyecto.</p>
+      <p>Puedes crear uno usando el formulario de arriba.</p>
+    </div>
     <table *ngIf="microincrements.length > 0">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Título</th>
           <th>Descripción</th>
+          <th>Tipo</th>
           <th>Iteración</th>
           <th>Entregable</th>
           <th>Fecha</th>
           <th>Autor</th>
+          <th>Valor</th>
+          <th>Evidencia</th>
           <th>Estado</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let micro of microincrements">
-          <td>{{ micro._id }}</td>
           <td>{{ micro.title }}</td>
           <td>{{ micro.description }}</td>
+          <td>
+            <span class="badge" [class.badge-tecnico]="micro.type === 'técnico'" [class.badge-funcional]="micro.type === 'funcional'">
+              {{ micro.type || 'funcional' }}
+            </span>
+          </td>
           <td>{{ micro.iteration }}</td>
           <td>{{ micro.deliverable }}</td>
-          <td>{{ micro.date | date:'shortDate' }}</td>
+          <td>{{ micro.date | date:'dd/MM/yyyy' }}</td>
           <td>{{ micro.author }}</td>
+          <td><strong>{{ micro.value || 0 }}/10</strong></td>
+          <td>
+            <a *ngIf="micro.evidence" [href]="micro.evidence" target="_blank" class="evidence-link">
+              Ver evidencia
+            </a>
+            <span *ngIf="!micro.evidence" class="no-evidence">Sin evidencia</span>
+          </td>
           <td>{{ micro.status }}</td>
         </tr>
       </tbody>

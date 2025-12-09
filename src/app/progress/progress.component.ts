@@ -25,9 +25,15 @@ export class ProgressComponent implements OnInit {
   constructor(private mainService: MainService) { }
 
   ngOnInit() {
+    console.log('🎯 Progress component initialized with projectId:', this.projectId);
+    console.log('🔢 ProjectId length:', this.projectId?.length);
+    console.log('🔤 ProjectId type:', typeof this.projectId);
+    
     if (this.projectId) {
       this.loadSummary();
       this.loadIterations();
+    } else {
+      console.error('❌ No projectId provided to progress component');
     }
   }
 
@@ -47,15 +53,34 @@ export class ProgressComponent implements OnInit {
 
   loadIterations() {
     this.loadingIterations = true;
+    console.log('🔍 Loading iterations for projectId:', this.projectId);
+    
     this.mainService.getIteraciones(this.projectId).subscribe({
       next: (response) => {
-        console.log(response);
-        this.iterations =Array.isArray(response.data)? response.data: [];
-        console.log(this.iterations.length)
+        console.log('✅ Response from getIteraciones:', response);
+        console.log('📦 Response type:', typeof response);
+        console.log('📊 Response.data:', response.data);
+        console.log('📊 Response.data type:', typeof response.data);
+        console.log('📊 Is Array?', Array.isArray(response.data));
+        
+        // El backend devuelve { status: 200, data: [], message: "..." }
+        if (response && response.data && Array.isArray(response.data)) {
+          this.iterations = response.data;
+          console.log('✅ Iterations loaded:', this.iterations.length, this.iterations);
+        } else if (response && Array.isArray(response)) {
+          // Por si el backend devuelve directamente un array
+          this.iterations = response;
+          console.log('✅ Iterations loaded (direct array):', this.iterations.length, this.iterations);
+        } else {
+          console.warn('⚠️ No iterations data found in response');
+          this.iterations = [];
+        }
+        
         this.loadingIterations = false;
       },
       error: (error) => {
-        console.error('Error loading iterations:', error);
+        console.error('❌ Error loading iterations:', error);
+        this.iterations = [];
         this.loadingIterations = false;
       }
     });

@@ -13,9 +13,16 @@ export class MicroincrementModalComponent {
   @Input() projectId!: string;
   @Output() closeModal = new EventEmitter<boolean>();
 
-  constructor() { }
+  constructor() {
+    console.log('MicroincrementModalComponent constructor called');
+  }
+
+  ngOnInit() {
+    console.log('MicroincrementModalComponent ngOnInit, projectId:', this.projectId);
+  }
 
   onCloseModal(refresh: boolean = false): void {
+    console.log('Closing microincrement modal');
     this.closeModal.emit(refresh);
   }
 }

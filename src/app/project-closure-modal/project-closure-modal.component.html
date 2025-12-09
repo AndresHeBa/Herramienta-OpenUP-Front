@@ -1,0 +1,105 @@
+<div class="modal-header">
+    <h2>Cerrar Proyecto: {{ projectName }}</h2>
+    <button class="btn-cerrar" (click)="onCancel()">×</button>
+</div>
+
+<div class="modal-body">
+    <!-- Loading state -->
+    <div *ngIf="isValidating" class="loading-state">
+        <p>Validando requisitos de cierre...</p>
+    </div>
+
+    <!-- Validation error -->
+    <div *ngIf="validationError" class="error-message">
+        <strong>Error:</strong> {{ validationError }}
+        <button class="btn-retry" (click)="validateProject()">Reintentar</button>
+    </div>
+
+    <!-- Validation results -->
+    <div *ngIf="validation && !closureSuccess" class="validation-section">
+        <div class="validation-status" [ngClass]="getValidationStatusClass()">
+            <h3>Estado de Validación</h3>
+            <p>{{ getValidationMessage() }}</p>
+        </div>
+
+        <!-- Missing artifacts -->
+        <div *ngIf="validation.missingArtifacts.length > 0" class="missing-artifacts">
+            <h4>Artefactos Obligatorios Faltantes ({{ validation.missingArtifacts.length }})</h4>
+            <ul>
+                <li *ngFor="let artifact of validation.missingArtifacts">
+                    <strong>{{ artifact.phase }}:</strong> {{ artifact.artifactType }}
+                    <span class="reason">({{ artifact.reason === 'not_found' ? 'No encontrado' : 'No entregado' }})</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Warnings -->
+        <div *ngIf="validation.warnings.length > 0" class="warnings">
+            <h4>Advertencias ({{ validation.warnings.length }})</h4>
+            <ul>
+                <li *ngFor="let warning of validation.warnings">
+                    <strong>{{ warning.phase }}:</strong> {{ warning.artifactType }}
+                    <span class="warning-detail">Estado: {{ warning.currentStatus }}, Versión: {{ warning.version }}</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Closure options -->
+        <div class="closure-options">
+            <h4>Opciones de Cierre</h4>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" [(ngModel)]="forceClose" [disabled]="validation.canClose" />
+                    Forzar cierre (solo admin)
+                </label>
+                <small *ngIf="!validation.canClose" style="display: block; margin-top: 5px; color: #e74c3c;">
+                    Marcar esta opción permite cerrar el proyecto aunque falten artefactos obligatorios.
+                    Requiere justificación.
+                </small>
+            </div>
+
+            <div *ngIf="forceClose" class="form-group">
+                <label>
+                    <strong>Justificación (obligatorio):</strong>
+                    <textarea [(ngModel)]="justification" rows="3" 
+                              placeholder="Explica por qué se fuerza el cierre sin todos los artefactos..."></textarea>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <strong>Notas de Cierre (opcional):</strong>
+                    <textarea [(ngModel)]="closureNotes" rows="3" 
+                              placeholder="Notas adicionales sobre el cierre del proyecto..."></textarea>
+                </label>
+            </div>
+        </div>
+
+        <!-- Error del cierre -->
+        <div *ngIf="closureError" class="error-message">
+            <strong>Error al cerrar:</strong> {{ closureError }}
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+            <button class="btn-cancelar" (click)="onCancel()" [disabled]="isClosing">
+                Cancelar
+            </button>
+            <button class="btn-cerrar-proyecto" (click)="onCloseProject()" [disabled]="isClosing || isValidating">
+                {{ isClosing ? 'Cerrando...' : 'Cerrar Proyecto' }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Success message -->
+    <div *ngIf="closureSuccess" class="success-message">
+        <h3>✓ Proyecto Cerrado Exitosamente</h3>
+        <p>El proyecto ha sido cerrado y se ha generado el documento de cierre automáticamente.</p>
+        <p class="download-info">Puedes descargar el documento de cierre en formato PDF:</p>
+        <button class="btn-download-pdf" (click)="downloadPDF()">
+            📄 Descargar Documento de Cierre (PDF)
+        </button>
+        <p class="closing-info">Cerrando modal...</p>
+    </div>
+</div>

@@ -69,4 +69,23 @@ getArtifactStateHistory(artifactId: string) {
   return this.http.get(`${this.baseUrl}/getArtifactStateHistory/${artifactId}`);
 }
 
+// Get project details
+getProject(projectId: string): Observable<any> {
+  return this.http.get(`http://localhost:6002/api/project/getProject/${projectId}`);
+}
+
+// HU-020: Reassign artifact to a different phase
+reassignArtifactPhase(artifactId: string, newPhase: string, userId: string, reason?: string) {
+  return this.http.put(`${this.baseUrl}/reassignPhase/${artifactId}`, {
+    newPhase,
+    userId,
+    reason: reason || 'Phase reassignment'
+  });
+}
+
+// HU-020: Get movement history for an artifact
+getArtifactMovementHistory(artifactId: string) {
+  return this.http.get(`${this.baseUrl}/movementHistory/${artifactId}`);
+}
+
 }

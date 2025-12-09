@@ -21,7 +21,10 @@
         </label>
         
         <label>Fase:
-          <input type="text" formControlName="phase" required>
+          <select formControlName="phase" required>
+            <option value="" disabled>Seleccionar fase</option>
+            <option *ngFor="let phase of phases" [value]="phase">{{ phase }}</option>
+          </select>
         </label>
         
         <label>Estado:

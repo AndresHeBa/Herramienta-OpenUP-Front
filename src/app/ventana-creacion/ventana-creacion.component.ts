@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MainService } from '../service/main.service';
+import { ConfigurationService } from '../service/configuration.service';
+import { ExportImportService } from '../service/export-import.service';
 import { ActiveProjectService } from '../service/active-project.service';
 import { Router } from '@angular/router';
 import { ProjectPlan } from '../models/project-plan.model';
@@ -10,6 +12,13 @@ import { IterationModalComponent } from '../iteration-modal/iteration-modal.comp
 import { HistoryModalComponent } from '../history-modal/history-modal.component';
 import { MicroincrementModalComponent } from '../microincrement-modal/microincrement-modal.component';
 import { Iteration } from '../models/iteration.model';
+import { HasPermissionDirective } from '../service/has-permission.directive';
+import { HasRoleDirective } from '../service/has-role.directive';
+import { OpenUPConfiguration } from '../models/openup-configuration.model';
+import { AuditViewerComponent } from '../audit-viewer/audit-viewer.component';
+import { ProjectMembersComponent } from '../project-members/project-members.component';
+import { ProjectClosureModalComponent } from '../project-closure-modal/project-closure-modal.component';
+import { ProjectClosureService } from '../service/project-closure.service';
 
 interface Fase {
   name: string;
@@ -34,7 +43,7 @@ interface Proyecto {
 @Component({
   selector: 'app-ventana-creacion',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ProgressComponent, IterationModalComponent, HistoryModalComponent, MicroincrementModalComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ProgressComponent, IterationModalComponent, HistoryModalComponent, MicroincrementModalComponent, HasPermissionDirective, HasRoleDirective, AuditViewerComponent, ProjectMembersComponent, ProjectClosureModalComponent],
   templateUrl: './ventana-creacion.component.html',
   styleUrl: './ventana-creacion.component.css'
 })
@@ -59,8 +68,37 @@ export class VentanaCreacionComponent implements OnInit {
   mostrarMicroincrementModal = false;
   selectedProjectIdForMicroincrement: string | null = null;
 
+  // HU-024: Audit viewer state
+  mostrarAuditModal = false;
+  selectedProjectIdForAudit: string | null = null;
+
+  // HU-025: Project members state
+  mostrarMembersModal = false;
+  selectedProjectIdForMembers: string | null = null;
+
+  // HU-026: Project closure state
+  mostrarClosureModal = false;
+  selectedProjectIdForClosure: string | null = null;
+  selectedProjectNameForClosure: string = '';
+
+  // Configuration
+  configurations: OpenUPConfiguration[] = [];
+  selectedConfigurationId: string | null = null;
+  currentProjectConfiguration: OpenUPConfiguration | null = null;
+
+  // HU-023: Export/Import state
+  showImportModal = false;
+  selectedImportFile: File | null = null;
+  importFileName = '';
+  isImporting = false;
+  importError = '';
+  importSuccess = '';
+
   constructor(
     private mainService: MainService,
+    private configService: ConfigurationService,
+    private exportImportService: ExportImportService,
+    private closureService: ProjectClosureService,
     private fb: FormBuilder,
     public activeProject: ActiveProjectService,
     private router: Router
@@ -72,7 +110,8 @@ export class VentanaCreacionComponent implements OnInit {
     fechaInicio: '',
     responsable: '',
     descripcion: '',
-    tags: ''
+    tags: '',
+    repositoryUrl: ''
   };
 
   fasesPredeterminadas = [
@@ -82,16 +121,45 @@ export class VentanaCreacionComponent implements OnInit {
     { nombre: 'Transición', estado: 'Pendiente' }
   ];
 
-  ngOnInit() {
-    this.mainService.getProjects().subscribe({
-      next: (response: any) => {
-        console.log('Proyectos leidos', response.Result.listResult);
-        this.proyectos = response.Result.listResult;
+  loadConfigurations(): void {
+    this.configService.getConfigurations().subscribe({
+      next: (response) => {
+        if (response && response.data) {
+          this.configurations = response.data;
+          console.log('✅ Configurations loaded:', this.configurations);
+          
+          // Pre-select active configuration if available
+          const activeConfig = this.configurations.find(c => c.active);
+          if (activeConfig) {
+            this.selectedConfigurationId = activeConfig._id || null;
+          }
+        }
       },
-      error: (err) => {
-        console.log('Error al traer proyectos', err);
-      },
+      error: (error) => {
+        console.error('❌ Error loading configurations:', error);
+      }
     });
+  }
+
+  getSelectedConfigurationPhases(): string[] {
+    if (!this.selectedConfigurationId) {
+      return this.fasesPredeterminadas.map(f => f.nombre);
+    }
+
+    const config = this.configurations.find(c => c._id === this.selectedConfigurationId);
+    if (!config || !config.phases || config.phases.length === 0) {
+      return this.fasesPredeterminadas.map(f => f.nombre);
+    }
+
+    // Sort phases by order and return their names
+    return config.phases
+      .sort((a, b) => a.order - b.order)
+      .map(phase => phase.name);
+  }
+
+  ngOnInit() {
+    this.loadConfigurations();
+    this.cargarProyectos();
 
     this.projectPlanForm = this.fb.group({
       objetivos: ['', Validators.required],
@@ -115,6 +183,9 @@ export class VentanaCreacionComponent implements OnInit {
       return;
     }
 
+    // Get phases from selected configuration
+    const phasesFromConfig = this.getSelectedConfigurationPhases();
+
     const nuevoProyecto: Proyecto = {
       _id: Date.now().toString(),
       name: this.formData.nombre,
@@ -125,7 +196,7 @@ export class VentanaCreacionComponent implements OnInit {
       tags: this.formData.tags,
       status: 'Creado',
       active: true,
-      phases: JSON.parse(JSON.stringify(this.fasesPredeterminadas))
+      phases: phasesFromConfig.map(phaseName => ({ name: phaseName, status: 'Pendiente' }))
     };
 
     this.mainService.postproyect(
@@ -135,7 +206,10 @@ export class VentanaCreacionComponent implements OnInit {
       nuevoProyecto.description,
       nuevoProyecto.responsible,
       nuevoProyecto.tags.split(',').map(tag => tag.trim()),
-      nuevoProyecto.active
+      phasesFromConfig,
+      this.selectedConfigurationId,
+      nuevoProyecto.active,
+      this.formData.repositoryUrl || undefined
     ).subscribe({
       next: (response) => {
         console.log('Proyecto creado en la API:', response);
@@ -154,22 +228,46 @@ export class VentanaCreacionComponent implements OnInit {
 
   guardarProyecto() {
     if (this.editandoId) {
-      const index = this.proyectos.findIndex(p => p._id === this.editandoId);
-      if (index !== -1) {
-        this.proyectos[index] = {
-          ...this.proyectos[index],
-          name: this.formData.nombre,
-          identifier: this.formData.identificador,
-          startDate: this.formData.fechaInicio,
-          responsible: this.formData.responsable,
-          description: this.formData.descripcion,
-          tags: this.formData.tags
-        };
-        this.guardarProyectos();
-        this.editandoId = null;
-        this.limpiarFormulario();
-        this.mostrarFormulario = false;
-      }
+      // Actualizar proyecto existente
+      const tagsArray = typeof this.formData.tags === 'string' 
+        ? this.formData.tags.split(',').map(tag => tag.trim())
+        : this.formData.tags;
+      
+      this.mainService.updateProject(
+        this.editandoId,
+        this.formData.nombre,
+        this.formData.identificador,
+        this.formData.fechaInicio,
+        this.formData.descripcion,
+        this.formData.responsable,
+        tagsArray,
+        this.formData.repositoryUrl || undefined
+      ).subscribe({
+        next: (response) => {
+          console.log('Proyecto actualizado en la API:', response);
+          // Actualizar lista local
+          const index = this.proyectos.findIndex(p => p._id === this.editandoId);
+          if (index !== -1) {
+            this.proyectos[index] = {
+              ...this.proyectos[index],
+              name: this.formData.nombre,
+              identifier: this.formData.identificador,
+              startDate: this.formData.fechaInicio,
+              responsible: this.formData.responsable,
+              description: this.formData.descripcion,
+              tags: this.formData.tags
+            };
+          }
+          this.editandoId = null;
+          this.limpiarFormulario();
+          this.mostrarFormulario = false;
+          alert('Proyecto actualizado correctamente');
+        },
+        error: (error) => {
+          console.error('Error al actualizar el proyecto en la API:', error);
+          alert('Error al actualizar el proyecto');
+        }
+      });
     } else {
       this.crearProyecto();
     }
@@ -184,7 +282,8 @@ export class VentanaCreacionComponent implements OnInit {
         fechaInicio: proyecto.startDate,
         responsable: proyecto.responsible,
         descripcion: proyecto.description,
-        tags: proyecto.tags
+        tags: proyecto.tags,
+        repositoryUrl: (proyecto as any).repositoryUrl || ''
       };
       this.editandoId = id;
       this.mostrarFormulario = true;
@@ -207,13 +306,72 @@ export class VentanaCreacionComponent implements OnInit {
     // Cargar iteraciones cuando se abre el detalle
     if (this.detalleProyecto) {
       this.loadIterations();
+      this.loadPlan(id);
+      
+      // Load and set the project's configuration as active
+      this.loadProjectConfiguration(id);
     }
+  }
+
+  loadProjectConfiguration(projectId: string): void {
+    this.configService.getProjectConfiguration(projectId).subscribe({
+      next: (response) => {
+        if (response && response.data) {
+          this.currentProjectConfiguration = response.data;
+          console.log('✅ Project configuration loaded:', this.currentProjectConfiguration);
+          
+          // If this project has a specific configuration, set it as active temporarily
+          if (this.currentProjectConfiguration?._id) {
+            this.configService.setActiveConfiguration(this.currentProjectConfiguration._id).subscribe({
+              next: () => {
+                console.log('✅ Configuration set as active for project context');
+              },
+              error: (error) => {
+                console.error('❌ Error setting project configuration as active:', error);
+              }
+            });
+          }
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error loading project configuration:', error);
+        this.currentProjectConfiguration = null;
+      }
+    });
+  }
+
+  loadPlan(projectId: string) {
+    this.mainService.getPlan(projectId).subscribe({
+      next: (response) => {
+        console.log('Plan cargado:', response);
+        if (response.intCode === 200 && response.data) {
+          // Buscar la fase de Incepción y asignar el plan
+          const inceptionPhase = this.detalleProyecto?.phases.find(p => p.name === 'Incepción');
+          if (inceptionPhase) {
+            inceptionPhase.plan = {
+              objetivos: response.data.objectives,
+              alcance: response.data.scope,
+              cronogramaInicial: response.data.initialSchedule,
+              responsabilidades: response.data.phaseResponsibles,
+              observaciones: response.data.observations,
+              version: parseInt(response.data.version) || 1,
+              fecha: new Date(response.data.createdAt || Date.now()),
+              fase: 'Incepción'
+            };
+          }
+        }
+      },
+      error: (error) => {
+        console.log('No se encontró plan o error al cargar:', error);
+      }
+    });
   }
 
   cerrarDetalle() {
     this.mostrarDetalle = false;
     this.detalleProyecto = null;
     this.iteraciones = [];
+    this.currentProjectConfiguration = null;
     this.cancelarCreacionPlan();
   }
 
@@ -269,20 +427,53 @@ export class VentanaCreacionComponent implements OnInit {
   }
 
   guardarPlan() {
-    if (this.projectPlanForm.invalid || !this.faseActualParaPlan) {
+    if (this.projectPlanForm.invalid || !this.faseActualParaPlan || !this.detalleProyecto) {
+      alert('Por favor completa todos los campos obligatorios');
       return;
     }
 
-    const nuevoPlan: ProjectPlan = {
-      ...this.projectPlanForm.value,
-      version: 1,
-      fecha: new Date(),
-      fase: this.faseActualParaPlan.name,
-    };
+    const formValues = this.projectPlanForm.value;
 
-    this.faseActualParaPlan.plan = nuevoPlan;
-    this.guardarProyectos();
-    this.cancelarCreacionPlan();
+    // Enviar al backend
+    this.mainService.postPlan(
+      this.detalleProyecto._id,
+      formValues.objetivos,
+      formValues.alcance,
+      formValues.cronogramaInicial, // initialSchedule
+      formValues.responsabilidades, // phaseResponsibles
+      [], // milestones vacío por ahora
+      formValues.observaciones || '',
+      '1' // version
+    ).subscribe({
+      next: (response) => {
+        console.log('Plan creado en el backend:', response);
+        
+        // Actualizar localmente
+        const nuevoPlan: ProjectPlan = {
+          objetivos: formValues.objetivos,
+          alcance: formValues.alcance,
+          cronogramaInicial: formValues.cronogramaInicial,
+          responsabilidades: formValues.responsabilidades,
+          observaciones: formValues.observaciones || '',
+          version: 1,
+          fecha: new Date(),
+          fase: this.faseActualParaPlan!.name,
+        };
+
+        this.faseActualParaPlan!.plan = nuevoPlan;
+        alert('Plan guardado exitosamente');
+        this.cancelarCreacionPlan();
+        
+        // Recargar proyecto para obtener datos actualizados
+        if (this.detalleProyecto) {
+          this.verDetalles(this.detalleProyecto._id);
+        }
+      },
+      error: (error) => {
+        console.error('Error al guardar el plan:', error);
+        alert('Error al guardar el plan en el servidor');
+      }
+    });
   }
 
   // ==================== MÉTODOS DE ITERACIONES ====================
@@ -380,8 +571,10 @@ export class VentanaCreacionComponent implements OnInit {
   }
 
   openMicroincrementModal(projectId: string) {
+    console.log('Opening microincrement modal for project:', projectId);
     this.selectedProjectIdForMicroincrement = projectId;
     this.mostrarMicroincrementModal = true;
+    console.log('Modal state:', this.mostrarMicroincrementModal, this.selectedProjectIdForMicroincrement);
   }
 
   closeMicroincrementModal(refresh: boolean) {
@@ -390,6 +583,55 @@ export class VentanaCreacionComponent implements OnInit {
     if (refresh) {
       // Potentially refresh data here if needed
     }
+  }
+
+  // HU-024: Audit modal methods
+  openAuditModal(projectId: string) {
+    console.log('Opening audit modal for project:', projectId);
+    this.selectedProjectIdForAudit = projectId;
+    this.mostrarAuditModal = true;
+  }
+
+  closeAuditModal() {
+    this.mostrarAuditModal = false;
+    this.selectedProjectIdForAudit = null;
+  }
+
+  // HU-025: Project members modal methods
+  openMembersModal(projectId: string) {
+    console.log('Opening members modal for project:', projectId);
+    this.selectedProjectIdForMembers = projectId;
+    this.mostrarMembersModal = true;
+  }
+
+  closeMembersModal() {
+    this.mostrarMembersModal = false;
+    this.selectedProjectIdForMembers = null;
+  }
+
+  // HU-026: Project closure modal methods
+  openClosureModal(projectId: string, projectName: string) {
+    console.log('Opening closure modal for project:', projectId);
+    this.selectedProjectIdForClosure = projectId;
+    this.selectedProjectNameForClosure = projectName;
+    this.mostrarClosureModal = true;
+  }
+
+  closeClosureModal(projectClosed: boolean) {
+    this.mostrarClosureModal = false;
+    this.selectedProjectIdForClosure = null;
+    this.selectedProjectNameForClosure = '';
+    
+    if (projectClosed) {
+      // Recargar lista de proyectos para reflejar el cambio de estado
+      this.cargarProyectos();
+      // Cerrar el detalle si está abierto
+      this.cerrarDetalle();
+    }
+  }
+
+  downloadClosurePDF(projectId: string) {
+    this.closureService.downloadClosurePDF(projectId);
   }
 
   private guardarProyectos() {
@@ -403,7 +645,148 @@ export class VentanaCreacionComponent implements OnInit {
       fechaInicio: '',
       responsable: '',
       descripcion: '',
-      tags: ''
+      tags: '',
+      repositoryUrl: ''
     };
+  }
+
+  // ==================== HU-023: EXPORT/IMPORT FUNCTIONALITY ====================
+
+  /**
+   * Load all projects from backend
+   */
+  cargarProyectos() {
+    this.mainService.getProjects().subscribe({
+      next: (response: any) => {
+        console.log('Proyectos leidos', response.Result.listResult);
+        this.proyectos = response.Result.listResult;
+      },
+      error: (err) => {
+        console.log('Error al traer proyectos', err);
+      },
+    });
+  }
+
+  /**
+   * Export project as ZIP with all data and files
+   */
+  exportProject(projectId: string) {
+    const project = this.proyectos.find(p => p._id === projectId);
+    if (!project) {
+      alert('Proyecto no encontrado');
+      return;
+    }
+
+    const confirmMsg = `¿Exportar el proyecto "${project.name}"?\n\nSe descargará un archivo ZIP con todos los artefactos, metadatos e historial.`;
+    if (!confirm(confirmMsg)) return;
+
+    this.exportImportService.exportProject(projectId, 'zip', true).subscribe({
+      next: (response) => {
+        if (response.body) {
+          // Extract filename from Content-Disposition header or use default
+          const contentDisposition = response.headers.get('Content-Disposition');
+          let filename = `export_${project.identifier}_${new Date().getTime()}.zip`;
+          
+          if (contentDisposition) {
+            const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+            if (matches && matches[1]) {
+              filename = matches[1].replace(/['"]/g, '');
+            }
+          }
+
+          this.exportImportService.downloadBlob(response.body, filename);
+          alert(`✓ Proyecto exportado exitosamente: ${filename}`);
+        }
+      },
+      error: (err) => {
+        console.error('Error exporting project:', err);
+        alert('Error al exportar el proyecto');
+      }
+    });
+  }
+
+  /**
+   * Open import modal
+   */
+  openImportModal() {
+    this.showImportModal = true;
+    this.selectedImportFile = null;
+    this.importFileName = '';
+    this.importError = '';
+    this.importSuccess = '';
+  }
+
+  /**
+   * Close import modal
+   */
+  closeImportModal() {
+    this.showImportModal = false;
+    this.selectedImportFile = null;
+    this.importFileName = '';
+    this.importError = '';
+    this.importSuccess = '';
+  }
+
+  /**
+   * Handle import file selection
+   */
+  onImportFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      
+      // Validate file type
+      if (!file.name.endsWith('.json')) {
+        this.importError = 'Por favor selecciona un archivo JSON válido';
+        this.selectedImportFile = null;
+        this.importFileName = '';
+        return;
+      }
+
+      this.selectedImportFile = file;
+      this.importFileName = file.name;
+      this.importError = '';
+      this.importSuccess = '';
+    }
+  }
+
+  /**
+   * Perform project import from selected file
+   */
+  performImport() {
+    if (!this.selectedImportFile) {
+      this.importError = 'Por favor selecciona un archivo primero';
+      return;
+    }
+
+    this.isImporting = true;
+    this.importError = '';
+    this.importSuccess = '';
+
+    this.exportImportService.importProjectFromFile(this.selectedImportFile).subscribe({
+      next: (response) => {
+        this.isImporting = false;
+        
+        if (response && response.intCode === 200) {
+          const result = response.Result;
+          this.importSuccess = `Proyecto importado exitosamente: ${result.identifier}`;
+          
+          // Refresh project list
+          this.cargarProyectos();
+          
+          // Close modal after a delay
+          setTimeout(() => {
+            this.closeImportModal();
+          }, 2000);
+        } else {
+          this.importError = response?.data || 'Error al importar el proyecto';
+        }
+      },
+      error: (err) => {
+        this.isImporting = false;
+        this.importError = err?.error?.data || 'Error al importar el proyecto';
+        console.error('Import error:', err);
+      }
+    });
   }
 }

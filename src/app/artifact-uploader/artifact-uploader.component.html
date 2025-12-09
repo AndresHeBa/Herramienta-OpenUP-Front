@@ -6,6 +6,16 @@
     <div class="project-info">
       <h1 *ngIf="projectId">Proyecto: {{ projectId }} — Fase: {{ currentPhase }}</h1>
       <h1 *ngIf="!projectId">Fase: {{ currentPhase }}</h1>
+      <div *ngIf="projectConfiguration" style="margin-top: 8px; padding: 8px; background: #e3f2fd; border-radius: 4px; border-left: 3px solid #2196f3;">
+        <small style="color: #1976d2;">
+          <strong>Configuración:</strong> {{ projectConfiguration.name }} (v{{ projectConfiguration.version }})
+        </small>
+      </div>
+      <div *ngIf="projectId && !projectConfiguration && !isLoadingArtifacts" style="margin-top: 8px; padding: 8px; background: #fff3cd; border-radius: 4px; border-left: 3px solid #ffc107;">
+        <small style="color: #856404;">
+          <strong>Advertencia:</strong> Usando configuración predeterminada de OpenUP
+        </small>
+      </div>
       <div *ngIf="isLoadingArtifacts" class="loading">Cargando artefactos...</div>
     </div>
   </div>
@@ -36,14 +46,41 @@
             <th>Flujo</th>
             <th>Estado</th>
             <th>Versión</th>
+            <th>Builds</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let afCtrl of artifactFields.controls; let i = index" [formGroupName]="i">
-            <td>{{ afCtrl.value.artifactType }}</td>
-            <td>{{ getLatestFilenameForType(afCtrl.value.artifactType) || '-' }}</td>
-            <td>{{ getLatestAuthorForType(afCtrl.value.artifactType) || '-' }}</td>
+            <td>
+              {{ afCtrl.value.artifactType }}
+              <span *ngIf="isMovedArtifactType(afCtrl.value.artifactType)" 
+                    class="moved-badge" 
+                    title="Este artefacto fue movido desde otra fase">
+                Movido
+              </span>
+              <span *ngIf="wasArtifactMoved(afCtrl.value.artifactType)" 
+                    class="delivered-badge" 
+                    title="Este artefacto fue entregado en otra fase">
+                Entregado en {{ getMovedToPhase(afCtrl.value.artifactType) }}
+              </span>
+            </td>
+            <td>
+              <ng-container *ngIf="!wasArtifactMoved(afCtrl.value.artifactType); else movedFile">
+                {{ getLatestFilenameForType(afCtrl.value.artifactType) || '-' }}
+              </ng-container>
+              <ng-template #movedFile>
+                {{ getMovedArtifactFilename(afCtrl.value.artifactType) }}
+              </ng-template>
+            </td>
+            <td>
+              <ng-container *ngIf="!wasArtifactMoved(afCtrl.value.artifactType); else movedAuthor">
+                {{ getLatestAuthorForType(afCtrl.value.artifactType) || '-' }}
+              </ng-container>
+              <ng-template #movedAuthor>
+                {{ getMovedArtifactAuthor(afCtrl.value.artifactType) }}
+              </ng-template>
+            </td>
             <td>{{ hasLatestArtifact(afCtrl.value.artifactType) ? (getLatestArtifactOfType(afCtrl.value.artifactType)?.isMandatory ? 'Sí' : 'No') : '-' }}</td>
             <td *ngIf="currentPhase === 'Elaboración'">{{ getLatestArtifactOfType(afCtrl.value.artifactType)?.prototypeLink || '-' }}</td>
             <td *ngIf="currentPhase === 'Construcción' || currentPhase === 'Transición'">{{ getLatestArtifactOfType(afCtrl.value.artifactType)?.externalLink || '-' }}</td>
@@ -81,11 +118,29 @@
               </div>
               <ng-template #noState>Sin Subir</ng-template>
             </td>
-            <td>{{ getLatestVersionForType(afCtrl.value.artifactType) || '-' }}</td>
+            <td>
+              <ng-container *ngIf="!wasArtifactMoved(afCtrl.value.artifactType); else movedVersion">
+                {{ getLatestVersionForType(afCtrl.value.artifactType) || '-' }}
+              </ng-container>
+              <ng-template #movedVersion>
+                {{ getMovedArtifactVersion(afCtrl.value.artifactType) || '-' }}
+              </ng-template>
+            </td>
+            <td>
+              <ng-container *ngIf="hasLatestArtifact(afCtrl.value.artifactType)">
+                <span class="build-count" [class.has-builds]="getBuildsCountForType(afCtrl.value.artifactType) > 0">
+                  {{ getBuildsCountForType(afCtrl.value.artifactType) }}
+                </span>
+              </ng-container>
+              <span *ngIf="!hasLatestArtifact(afCtrl.value.artifactType)">-</span>
+            </td>
             <td class="acciones">
-              <button type="button" class="btn-accion btn-editar" (click)="toggleEdit(i)" [disabled]="!projectId">{{ isEditing(i) ? 'Hecho' : 'Editar' }}</button>
-              <button type="button" class="btn-accion btn-ver" (click)="openModal(i)" [disabled]="uploading || !projectId">Subir</button>
-              <button type="button" class="btn-accion btn-ver" (click)="openHistory(i)" [disabled]="!hasLatestArtifact(afCtrl.value.artifactType)">Historial</button>
+              <button type="button" class="btn-accion btn-editar" (click)="toggleEdit(i)" [disabled]="!projectId || wasArtifactMoved(afCtrl.value.artifactType)">{{ isEditing(i) ? 'Hecho' : 'Editar' }}</button>
+              <button type="button" class="btn-accion btn-ver" (click)="openModal(i)" [disabled]="uploading || !projectId || wasArtifactMoved(afCtrl.value.artifactType)">Subir</button>
+              <button type="button" class="btn-accion btn-ver" (click)="openHistory(i)" [disabled]="!hasLatestArtifact(afCtrl.value.artifactType) && !wasArtifactMoved(afCtrl.value.artifactType)">Historial</button>
+              <button type="button" class="btn-accion btn-quality" (click)="openQualityForArtifact(afCtrl.value.artifactType)" [disabled]="!hasLatestArtifact(afCtrl.value.artifactType) && !wasArtifactMoved(afCtrl.value.artifactType)">Calidad</button>
+              <button type="button" class="btn-accion btn-reassign" (click)="openReassignModal(i)" [disabled]="!hasLatestArtifact(afCtrl.value.artifactType) && !wasArtifactMoved(afCtrl.value.artifactType)" title="Reasignar a otra fase">Mover</button>
+              <button type="button" class="btn-accion btn-ver" (click)="openBuildsModal(i)" [disabled]="!hasLatestArtifact(afCtrl.value.artifactType)" title="Gestionar builds">Builds</button>
             </td>
           </tr>
         </tbody>
@@ -158,6 +213,177 @@
     </div>
   </div>
 
+  <!-- HU-020: Modal para reasignar fase -->
+  <div class="modal" [class.visible]="reassignModalIndex !== null">
+    <div class="modal-contenido" *ngIf="reassignModalIndex !== null">
+      <button class="btn-cerrar" (click)="closeReassignModal()">×</button>
+      <h2>Reasignar Artefacto - {{ artifactFields.at(reassignModalIndex || 0).value.artifactType }}</h2>
+
+      <div class="detalle-seccion">
+        <p><strong>Fase actual:</strong> {{ currentPhase }}</p>
+        
+        <label>
+          <strong>Fase destino:</strong>
+          <select [(ngModel)]="reassignTargetPhase" class="form-control">
+            <option [ngValue]="null">-- Seleccionar fase --</option>
+            <option *ngFor="let phase of getAvailablePhases()" [ngValue]="phase">{{ phase }}</option>
+          </select>
+        </label>
+
+        <label>
+          <strong>Razón del movimiento (obligatorio):</strong>
+          <textarea [(ngModel)]="reassignReason" rows="3" placeholder="Explique por qué se mueve este artefacto..." class="form-control"></textarea>
+        </label>
+
+        <div class="movement-history-section">
+          <button class="btn-accion btn-ver" (click)="toggleMovementHistory()">
+            {{ showMovementHistory ? 'Ocultar' : 'Ver' }} Historial de Movimientos
+          </button>
+
+          <div *ngIf="showMovementHistory" class="movement-history-list">
+            <h4>Movimientos previos</h4>
+            <div *ngIf="movementHistory.length === 0" class="no-data">
+              No hay movimientos previos registrados
+            </div>
+            <table *ngIf="movementHistory.length > 0" class="history-table">
+              <thead>
+                <tr>
+                  <th>Desde</th>
+                  <th>Hacia</th>
+                  <th>Movido por</th>
+                  <th>Fecha</th>
+                  <th>Razón</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let mov of movementHistory">
+                  <td>{{ mov.oldPhase }}</td>
+                  <td>{{ mov.newPhase }}</td>
+                  <td>{{ mov.movedBy }}</td>
+                  <td>{{ mov.movedAt | date:'short' }}</td>
+                  <td>{{ mov.reason }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="alert-warning" *ngIf="reassignTargetPhase">
+          <strong>Advertencia:</strong> Este cambio afectará la ubicación del artefacto en el proyecto.
+          El historial de versiones y estados se preservará.
+        </div>
+      </div>
+
+      <div class="botones-grupo">
+        <button class="btn-accion btn-editar" (click)="performReassignment()" 
+                [disabled]="!reassignTargetPhase || !reassignReason.trim() || isReassigning">
+          {{ isReassigning ? 'Moviendo...' : 'Confirmar Movimiento' }}
+        </button>
+        <button class="btn-cancelar" (click)="closeReassignModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HU-022: Modal para gestionar builds -->
+  <div class="modal" [class.visible]="buildsModalIndex !== null">
+    <div class="modal-contenido" *ngIf="buildsModalIndex !== null">
+      <button class="btn-cerrar" (click)="closeBuildsModal()">×</button>
+      <h2>Builds - {{ artifactFields.at(buildsModalIndex || 0).value.artifactType }}</h2>
+
+      <div class="detalle-seccion">
+        <p><strong>Artefacto:</strong> {{ getLatestFilenameForType(artifactFields.at(buildsModalIndex || 0).value.artifactType) }}</p>
+        <p><strong>Versión actual:</strong> v{{ getLatestVersionForType(artifactFields.at(buildsModalIndex || 0).value.artifactType) }}</p>
+
+        <div *ngIf="projectRepositoryUrl" class="repository-info">
+          <p><strong>Repositorio:</strong> <a [href]="projectRepositoryUrl" target="_blank">{{ projectRepositoryUrl }}</a></p>
+        </div>
+        <div *ngIf="!projectRepositoryUrl" class="alert-warning">
+          <strong>Advertencia:</strong> Este proyecto no tiene un repositorio configurado. 
+          Puedes registrar builds manualmente sin commit hash.
+        </div>
+      </div>
+
+      <div class="detalle-seccion">
+        <h3>Registrar nuevo build</h3>
+        <div class="form-section">
+          <label>
+            <strong>Build ID:</strong>
+            <input type="text" [(ngModel)]="newBuild.buildId" placeholder="build-123 o #456" class="form-control" />
+          </label>
+          <label>
+            <strong>Commit Hash:</strong>
+            <input type="text" [(ngModel)]="newBuild.commitHash" placeholder="abc123def456..." class="form-control" />
+            <small class="hint">Hash del commit asociado (opcional)</small>
+          </label>
+          <label>
+            <strong>Estado:</strong>
+            <select [(ngModel)]="newBuild.status" class="form-control">
+              <option value="success">Éxito</option>
+              <option value="failure">Fallo</option>
+              <option value="pending">Pendiente</option>
+              <option value="in_progress">En progreso</option>
+            </select>
+          </label>
+          <label>
+            <strong>Fecha:</strong>
+            <input type="datetime-local" [(ngModel)]="newBuild.buildDate" class="form-control" />
+          </label>
+          <label>
+            <strong>Logs (opcional):</strong>
+            <textarea [(ngModel)]="newBuild.logs" rows="3" placeholder="Logs del build..." class="form-control"></textarea>
+          </label>
+        </div>
+        <button class="btn-accion btn-editar" (click)="registerBuild()" [disabled]="!newBuild.buildId || isRegisteringBuild">
+          {{ isRegisteringBuild ? 'Registrando...' : 'Registrar Build' }}
+        </button>
+      </div>
+
+      <div class="detalle-seccion">
+        <h3>Builds registrados ({{ buildsList.length }})</h3>
+        <div *ngIf="buildsList.length === 0" class="no-data">
+          No hay builds registrados para este artefacto
+        </div>
+        <table *ngIf="buildsList.length > 0" class="history-table">
+          <thead>
+            <tr>
+              <th>Build ID</th>
+              <th>Commit</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+              <th>Logs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let build of buildsList">
+              <td>{{ build.buildId }}</td>
+              <td>
+                <span *ngIf="build.commitHash" class="commit-hash" [title]="build.commitHash">
+                  {{ build.commitHash.substring(0, 8) }}
+                </span>
+                <span *ngIf="!build.commitHash">-</span>
+              </td>
+              <td>
+                <span class="build-status" [class.build-success]="build.status === 'success'" 
+                      [class.build-failure]="build.status === 'failure'">
+                  {{ build.status }}
+                </span>
+              </td>
+              <td>{{ build.buildDate | date:'short' }}</td>
+              <td>
+                <button *ngIf="build.logs" class="btn-accion btn-ver" (click)="showBuildLogs(build)">Ver logs</button>
+                <span *ngIf="!build.logs">-</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="botones-grupo">
+        <button class="btn-cancelar" (click)="closeBuildsModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal de subida -->
   <div class="modal" [class.visible]="modalIndex !== null">
     <div class="modal-contenido" *ngIf="modalIndex !== null && rowEditForm" [formGroup]="rowEditForm">
@@ -199,6 +425,14 @@
   <!-- Acciones finales -->
   <div class="phase-actions">
     <button *ngIf="currentPhase === 'Transición'" class="btn-archivar" (click)="validateTransitionAndClose()">Validar cierre (Transición)</button>
+  </div>
+
+  <!-- Sección de Gestión de Calidad (embebida) -->
+  <div *ngIf="showQualitySection" class="quality-section-embedded">
+    <app-quality-management 
+      [artifactData]="selectedArtifactForQuality"
+      (closeSection)="closeQualitySection()">
+    </app-quality-management>
   </div>
 
 </div>

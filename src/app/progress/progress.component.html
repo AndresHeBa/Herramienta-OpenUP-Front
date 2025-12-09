@@ -39,16 +39,24 @@
       <thead>
         <tr>
           <th>Iteración</th>
+          <th>Fase</th>
           <th>Fechas</th>
-          <th>Completado</th>
+          <th>% Completado</th>
+          <th>Estado</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let iteration of iterations">
           <td>{{ iteration.iteration }}</td>
-          <td>{{ iteration.startDate }} - {{ iteration.endDate }}</td>
+          <td>{{ iteration.phase }}</td>
+          <td>{{ iteration.startDate | date:'dd/MM/yyyy' }} - {{ iteration.endDate | date:'dd/MM/yyyy' }}</td>
           <td>{{ iteration.completionPercent }}%</td>
+          <td>
+            <span [class.active-badge]="iteration.status === 'Active' || iteration.active === true">
+              {{ (iteration.status === 'Active' || iteration.active === true) ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
           <td class="acciones">
             <button class="btn-accion btn-ver" (click)="openIterationModalForEdit(iteration)">Ver/Editar</button>
           </td>

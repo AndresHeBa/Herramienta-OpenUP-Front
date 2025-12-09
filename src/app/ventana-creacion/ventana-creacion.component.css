@@ -1,3 +1,159 @@
+/* ==================== BARRA DE ACCIONES ==================== */
+
+.actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.actions-bar h1 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.actions-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-nuevo {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-nuevo:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* ==================== TABLA DE PROYECTOS ==================== */
+
+.tabla-container {
+    margin-top: 2rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
+    border: 1px solid #e0e0e0;
+    padding: 2rem 1rem;
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100vw;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+    min-width: 700px;
+    table-layout: fixed;
+}
+
+th, td {
+    padding: 0.5rem 0.6rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    word-break: break-word;
+    max-width: 180px;
+    font-size: 0.97rem;
+}
+
+th {
+    background: #f5f6fa;
+    color: #2c3e50;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.95rem;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.sin-proyectos {
+    padding: 2rem;
+    text-align: center;
+    color: #888;
+}
+
+.acciones {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+
+.btn-accion {
+    padding: 0.4rem 1.1rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin: 0;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    min-width: 120px;
+    text-align: center;
+}
+
+.btn-ver {
+    background: #3498db;
+    color: #fff;
+}
+.btn-ver:hover {
+    background: #217dbb;
+}
+
+.btn-editar {
+    background: #f1c40f;
+    color: #fff;
+}
+.btn-editar:hover {
+    background: #d4ac0d;
+}
+
+.btn-eliminar {
+    background: #e74c3c;
+    color: #fff;
+}
+.btn-eliminar:hover {
+    background: #c0392b;
+}
+
+.btn-archivar {
+    background: #1abc9c;
+    color: #fff;
+}
+.btn-archivar:hover {
+    background: #148f77;
+}
+
+@media (max-width: 900px) {
+    .tabla-container {
+        padding: 1rem 0.2rem;
+    }
+    table {
+        min-width: 600px;
+    }
+    .btn-accion {
+        min-width: 90px;
+        font-size: 0.9rem;
+    }
+}
 /* ==================== SECCIÓN DE DETALLES (NO MODAL) ==================== */
 
 .detalle-section {
@@ -245,6 +401,73 @@
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid #e0e0e0;
+}
+
+/* ==================== AUDIT MODAL ==================== */
+
+.modal-audit {
+    width: 95%;
+    max-width: 1400px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.btn-audit {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-audit:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
+    transform: translateY(-2px);
+}
+
+/* ==================== MEMBERS MODAL ==================== */
+
+.modal-members {
+    width: 95%;
+    max-width: 1400px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.btn-members {
+    background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+    color: white;
+}
+
+.btn-members:hover {
+    background: linear-gradient(135deg, #388e3c 0%, #4caf50 100%);
+    transform: translateY(-2px);
+}
+
+.btn-close-project {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+}
+
+.btn-close-project:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    transform: translateY(-2px);
+}
+
+.btn-download-pdf {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+}
+
+.btn-download-pdf:hover {
+    background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+    transform: translateY(-2px);
+}
+
+.modal-closure {
+    max-width: 900px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 0;
 }
 
 /* ==================== RESPONSIVE ==================== */

@@ -1,0 +1,181 @@
+<div class="members-container">
+  <div class="members-header">
+    <h2>Gestión de Miembros del Proyecto</h2>
+    <button class="btn-cerrar" (click)="close()">×</button>
+  </div>
+
+  <!-- Loading & Error States -->
+  <div *ngIf="isLoading" class="loading-state">
+    <p>Cargando...</p>
+  </div>
+
+  <div *ngIf="error" class="error-state">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Controls Section -->
+  <div class="controls-section" *ngIf="!isLoading">
+    <div class="controls-left">
+      <button class="btn-primary" (click)="toggleInviteForm()">
+        {{ showInviteForm ? 'Cancelar' : '+ Invitar Miembro' }}
+      </button>
+    </div>
+
+    <div class="controls-right">
+      <label class="filter-label">
+        Filtrar por estado:
+        <select [(ngModel)]="statusFilter" (change)="onStatusFilterChange()" class="filter-select">
+          <option value="all">Todos</option>
+          <option value="pending">Pendientes</option>
+          <option value="active">Activos</option>
+          <option value="rejected">Rechazados</option>
+          <option value="removed">Removidos</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <!-- Invite Form -->
+  <div class="invite-form-container" *ngIf="showInviteForm">
+    <h3>Invitar Nuevo Miembro</h3>
+    <form (ngSubmit)="inviteMember()" class="invite-form">
+      <div class="form-group">
+        <label>ID de Usuario:
+          <input type="text" [(ngModel)]="inviteForm.userId" name="userId" required 
+                 placeholder="Ejemplo: 2" />
+          <small>ID del usuario en el sistema (requerido)</small>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label>Nombre de Usuario (referencia):
+          <input type="text" [(ngModel)]="inviteForm.username" name="username" 
+                 placeholder="Ejemplo: autor1" />
+          <small>Solo para referencia, no se valida</small>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label>Email (opcional):
+          <input type="email" [(ngModel)]="inviteForm.email" name="email" 
+                 placeholder="usuario@ejemplo.com" />
+          <small>Email para notificaciones (opcional)</small>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label>Roles a asignar:</label>
+        <div class="roles-checkboxes">
+          <div *ngFor="let role of availableRoles" class="role-checkbox">
+            <label>
+              <input type="checkbox" 
+                     [checked]="isRoleSelected(role.id)"
+                     (change)="toggleRoleSelection(role.id)" />
+              <span class="role-badge" [class]="'badge-' + membersService.getRoleColor(role.id)">
+                {{ role.name }}
+              </span>
+              <small>{{ role.description }}</small>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" [disabled]="isLoading">
+          Enviar Invitación
+        </button>
+        <button type="button" class="btn-secondary" (click)="toggleInviteForm()">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Members List -->
+  <div class="members-list" *ngIf="!isLoading && members.length > 0">
+    <table class="members-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Roles</th>
+          <th>Estado</th>
+          <th>Invitado por</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let member of members">
+          <td>
+            <strong>{{ member.userInfo?.username || member.userId }}</strong>
+          </td>
+          <td>{{ member.userInfo?.email || '-' }}</td>
+          <td>
+            <!-- Editing Roles -->
+            <div *ngIf="editingMember?._id === member._id" class="edit-roles-inline">
+              <div class="roles-checkboxes-inline">
+                <label *ngFor="let role of availableRoles" class="role-checkbox-inline">
+                  <input type="checkbox" 
+                         [checked]="isEditRoleSelected(role.id)"
+                         (change)="toggleEditRole(role.id)" />
+                  <span class="role-badge-sm" [class]="'badge-' + membersService.getRoleColor(role.id)">
+                    {{ membersService.getRoleLabel(role.id) }}
+                  </span>
+                </label>
+              </div>
+              <div class="edit-actions">
+                <button class="btn-save-sm" (click)="saveRoles()">Guardar</button>
+                <button class="btn-cancel-sm" (click)="cancelEditRoles()">Cancelar</button>
+              </div>
+            </div>
+
+            <!-- Display Roles -->
+            <div *ngIf="editingMember?._id !== member._id" class="roles-display">
+              <span *ngFor="let role of member.roles" 
+                    class="role-badge" 
+                    [class]="'badge-' + membersService.getRoleColor(role)">
+                {{ membersService.getRoleLabel(role) }}
+              </span>
+            </div>
+          </td>
+          <td>
+            <span class="status-badge" [class]="'status-' + membersService.getStatusColor(member.status)">
+              {{ membersService.getStatusLabel(member.status) }}
+            </span>
+          </td>
+          <td>{{ member.inviterInfo?.username || '-' }}</td>
+          <td>
+            <small>{{ formatDate(member.invitedAt) }}</small>
+          </td>
+          <td>
+            <div class="action-buttons" *ngIf="member.status === 'active'">
+              <button class="btn-action btn-edit" 
+                      *ngIf="editingMember?._id !== member._id"
+                      (click)="startEditRoles(member)"
+                      title="Editar roles">
+                Editar
+              </button>
+              <button class="btn-action btn-remove" 
+                      (click)="removeMember(member)"
+                      title="Remover miembro">
+                Remover
+              </button>
+            </div>
+            <div *ngIf="member.status !== 'active'" class="no-actions">
+              -
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && members.length === 0">
+    <p>No hay miembros en este proyecto</p>
+    <button class="btn-primary" (click)="toggleInviteForm()" *ngIf="!showInviteForm">
+      Invitar Primer Miembro
+    </button>
+  </div>
+</div>

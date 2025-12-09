@@ -45,7 +45,44 @@
   color: white !important;
 }
 
+.user-info {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #374151;
+}
+
+.user-details {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  color: #d1d5db;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px !important;
+  background-color: #dc2626 !important;
+  color: white !important;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.logout-btn:hover {
+  background-color: #b91c1c !important;
+}
+
 .content {
   flex: 1;
   padding: 20px 30px;
+}
+
+.content.full-width {
+  padding: 0;
 }

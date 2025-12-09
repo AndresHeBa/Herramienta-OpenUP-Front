@@ -159,6 +159,7 @@
     padding: 25px;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    overflow-x: scroll;
 }
 
 .tabla-container h2 {
@@ -247,6 +248,24 @@ tbody td {
 
 .btn-ver:hover {
     background: #2563eb;
+    transform: translateY(-2px);
+}
+
+.btn-quality {
+    background: #10b981;
+}
+
+.btn-quality:hover {
+    background: #059669;
+    transform: translateY(-2px);
+}
+
+.btn-reassign {
+    background: #8b5cf6;
+}
+
+.btn-reassign:hover {
+    background: #7c3aed;
     transform: translateY(-2px);
 }
 
@@ -560,3 +579,173 @@ tbody td {
   min-height: 60px;
   resize: vertical;
 }
+
+/* Quality Management Embedded Section */
+.quality-section-embedded {
+  margin-top: 40px;
+  padding: 30px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border-left: 5px solid #10b981;
+}
+
+/* HU-020: Reassignment Modal Styles */
+.movement-history-section {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.movement-history-list {
+  margin-top: 15px;
+}
+
+.movement-history-list h4 {
+  font-size: 1rem;
+  color: #374151;
+  margin-bottom: 10px;
+}
+
+.no-data {
+  text-align: center;
+  color: #6b7280;
+  padding: 20px;
+  font-style: italic;
+}
+
+.alert-warning {
+  margin-top: 15px;
+  padding: 12px;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 6px;
+  color: #92400e;
+}
+
+.alert-warning strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  margin-top: 8px;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* HU-020: Badge for moved artifacts */
+.moved-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+  box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
+}
+
+/* HU-020: Badge for delivered artifacts (moved to another phase) */
+.delivered-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+/* HU-022: Builds management styles */
+.build-count {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #e5e7eb;
+  color: #6b7280;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.build-count.has-builds {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.repository-info {
+  padding: 12px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  margin: 10px 0;
+}
+
+.repository-info a {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.repository-info a:hover {
+  text-decoration: underline;
+}
+
+.commit-hash {
+  font-family: 'Courier New', monospace;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.build-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.build-status.build-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.build-status.build-failure {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.no-data {
+  text-align: center;
+  padding: 20px;
+  color: #9ca3af;
+  font-style: italic;
+}
+

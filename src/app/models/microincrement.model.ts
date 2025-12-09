@@ -9,4 +9,7 @@ export interface Microincremento {
   author: string;
   status?: string;
   creationDate?: string;
+  type?: 'técnico' | 'funcional'; // Nuevo campo para HU-017
+  evidence?: string; // Nuevo campo para archivo o enlace
+  value?: number; // Nuevo campo para registrar valor (0-10)
 }

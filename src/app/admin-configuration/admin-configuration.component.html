@@ -1,0 +1,471 @@
+<div class="admin-container" *hasRole="'admin'">
+  <header class="header">
+    <h1>Administración de Configuración OpenUP</h1>
+  </header>
+
+  <!-- Message Alert -->
+  <div *ngIf="message" class="alert" [class.alert-success]="message.type === 'success'" [class.alert-error]="message.type === 'error'">
+    {{ message.text }}
+  </div>
+
+  <!-- Configuration Selector -->
+  <div class="config-selector">
+    <div class="selector-header">
+      <h2>Configuraciones</h2>
+      <button class="btn-primary" (click)="createNewConfiguration()">
+        + Nueva Configuración
+      </button>
+    </div>
+    
+    <div class="config-list">
+      <div *ngFor="let config of configurations" 
+           class="config-item" 
+           [class.active]="config._id === selectedConfiguration?._id"
+           (click)="selectConfiguration(config)">
+        <div class="config-info">
+          <h3>{{ config.name }}</h3>
+          <p>{{ config.description }}</p>
+          <span class="config-version">v{{ config.version }}</span>
+          <span *ngIf="config.active" class="badge-active">Activa</span>
+        </div>
+        <div class="config-actions">
+          <button *ngIf="!config.active" class="btn-sm" (click)="setAsActive(config._id!)">
+            Establecer como activa
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="selectedConfiguration" class="main-content">
+    <div class="content-header">
+      <h2>{{ selectedConfiguration.name }}</h2>
+      <div class="header-actions">
+        <button class="btn-secondary" (click)="openApplyModal()">
+          Aplicar a Proyectos
+        </button>
+        <button class="btn-secondary" (click)="activeTab = 'history'">
+          Ver Historial
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab" [class.active]="activeTab === 'roles'" (click)="activeTab = 'roles'">
+        Roles
+      </button>
+      <button class="tab" [class.active]="activeTab === 'phases'" (click)="activeTab = 'phases'">
+        Fases
+      </button>
+      <button class="tab" [class.active]="activeTab === 'artifacts'" (click)="activeTab = 'artifacts'">
+        Tipos de Artefactos
+      </button>
+      <button class="tab" [class.active]="activeTab === 'workflows'" (click)="activeTab = 'workflows'">
+        Flujos de Trabajo
+      </button>
+      <button class="tab" [class.active]="activeTab === 'permissions'" (click)="activeTab = 'permissions'; buildPermissionsForm()">
+        Permisos
+      </button>
+      <button class="tab" [class.active]="activeTab === 'history'" (click)="activeTab = 'history'">
+        Historial
+      </button>
+    </div>
+
+    <!-- Tab Content: Roles -->
+    <div *ngIf="activeTab === 'roles'" class="tab-content">
+      <div class="tab-header">
+        <h3>Roles del Modelo</h3>
+        <button class="btn-primary" (click)="openRoleModal()">+ Nuevo Rol</button>
+      </div>
+      
+      <div class="items-grid">
+        <div *ngFor="let role of selectedConfiguration.roles" class="item-card">
+          <h4>{{ role.name }}</h4>
+          <p>{{ role.description }}</p>
+          <ul class="item-list">
+            <li *ngFor="let resp of role.responsibilities">{{ resp }}</li>
+          </ul>
+          <div class="item-actions">
+            <button class="btn-edit" (click)="openRoleModal(role)">Editar</button>
+            <button class="btn-delete" (click)="deleteRole(role._id!)">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: Phases -->
+    <div *ngIf="activeTab === 'phases'" class="tab-content">
+      <div class="tab-header">
+        <h3>Fases del Proceso</h3>
+        <button class="btn-primary" (click)="openPhaseModal()">+ Nueva Fase</button>
+      </div>
+      
+      <div class="items-grid">
+        <div *ngFor="let phase of selectedConfiguration.phases" class="item-card">
+          <div class="phase-order">{{ phase.order }}</div>
+          <h4>{{ phase.name }}</h4>
+          <p>{{ phase.description }}</p>
+          <h5>Objetivos:</h5>
+          <ul class="item-list">
+            <li *ngFor="let obj of phase.objectives">{{ obj }}</li>
+          </ul>
+          <div class="item-actions">
+            <button class="btn-edit" (click)="openPhaseModal(phase)">Editar</button>
+            <button class="btn-delete" (click)="deletePhase(phase._id!)">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: Artifact Types -->
+    <div *ngIf="activeTab === 'artifacts'" class="tab-content">
+      <div class="tab-header">
+        <h3>Tipos de Artefactos</h3>
+        <button class="btn-primary" (click)="openArtifactModal()">+ Nuevo Tipo</button>
+      </div>
+      
+      <div class="items-grid">
+        <div *ngFor="let artifact of selectedConfiguration.artifactTypes" class="item-card">
+          <h4>{{ artifact.name }}</h4>
+          <p>{{ artifact.description }}</p>
+          <p><strong>Fase:</strong> {{ artifact.phase }}</p>
+          <p><strong>Requerido:</strong> {{ artifact.required ? 'Sí' : 'No' }}</p>
+          <div *ngIf="artifact.customFields && artifact.customFields.length > 0">
+            <h5>Campos Personalizados:</h5>
+            <ul class="item-list">
+              <li *ngFor="let field of artifact.customFields">
+                {{ field.name }} ({{ field.type }})
+                <span *ngIf="field.required" class="required-field">*</span>
+              </li>
+            </ul>
+          </div>
+          <div class="item-actions">
+            <button class="btn-edit" (click)="openArtifactModal(artifact)">Editar</button>
+            <button class="btn-delete" (click)="deleteArtifactType(artifact._id!)">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: Workflows -->
+    <div *ngIf="activeTab === 'workflows'" class="tab-content">
+      <div class="tab-header">
+        <h3>Flujos de Trabajo</h3>
+        <button class="btn-primary" (click)="openWorkflowModal()">+ Nuevo Flujo</button>
+      </div>
+      
+      <div class="items-grid">
+        <div *ngFor="let workflow of selectedConfiguration.workflows" class="item-card">
+          <h4>{{ workflow.name }}</h4>
+          <p>{{ workflow.description }}</p>
+          <div *ngIf="workflow.steps && workflow.steps.length > 0">
+            <h5>Pasos del Flujo:</h5>
+            <ol class="item-list">
+              <li *ngFor="let step of workflow.steps">
+                <strong>{{ step.name }}</strong>
+                <span *ngIf="step.responsibleRole"> - {{ step.responsibleRole }}</span>
+                <p *ngIf="step.description" style="margin: 5px 0 0 0; font-size: 0.9em; color: #666;">
+                  {{ step.description }}
+                </p>
+              </li>
+            </ol>
+          </div>
+          <div class="item-actions">
+            <button class="btn-edit" (click)="openWorkflowModal(workflow)">Editar</button>
+            <button class="btn-delete" (click)="deleteWorkflow(workflow._id!)">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: Permissions -->
+    <div *ngIf="activeTab === 'permissions'" class="tab-content">
+      <div class="tab-header">
+        <h3>Matriz de Permisos</h3>
+        <button class="btn-primary" (click)="savePermissions()" [disabled]="loading">Guardar Permisos</button>
+      </div>
+      
+      <div class="permissions-matrix">
+        <form [formGroup]="permissionsForm">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Acción</th>
+                <th *ngFor="let role of selectedConfiguration.roles">{{ role.name }}</th>
+                <th>Roles Asignados</th>
+              </tr>
+            </thead>
+            <tbody formArrayName="entries">
+              <tr *ngFor="let entry of permissionEntries.controls; let i = index" [formGroupName]="i">
+                <td><strong>{{ entry.value.action }}</strong></td>
+                <td *ngFor="let role of selectedConfiguration.roles" class="checkbox-cell">
+                  <input 
+                    type="checkbox" 
+                    [checked]="(entry.value.roles || []).indexOf(role.name) !== -1"
+                    (change)="togglePermissionRole(i, role.name)" 
+                  />
+                </td>
+                <td class="assigned-roles">{{ getAssignedRoleNames(entry.value.roles) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </form>
+      </div>
+      
+      <div class="permissions-help">
+        <h4>Acciones disponibles:</h4>
+        <ul>
+          <li><strong>create:</strong> Crear nuevos elementos</li>
+          <li><strong>edit:</strong> Editar elementos existentes</li>
+          <li><strong>approve:</strong> Aprobar elementos</li>
+          <li><strong>change_state:</strong> Cambiar estado de elementos</li>
+          <li><strong>comment:</strong> Agregar comentarios</li>
+          <li><strong>review:</strong> Revisar elementos</li>
+          <li><strong>delete:</strong> Eliminar elementos</li>
+          <li><strong>view:</strong> Ver elementos</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Tab Content: History -->
+    <div *ngIf="activeTab === 'history'" class="tab-content">
+      <div class="tab-header">
+        <h3>Historial de Cambios</h3>
+        <button class="btn-secondary" (click)="openRevertModal()">Revertir Versión</button>
+      </div>
+      
+      <div class="history-list">
+        <div *ngFor="let entry of configurationHistory" class="history-item">
+          <div class="history-header">
+            <span class="history-version">Versión {{ entry.version }}</span>
+            <span class="history-date">{{ entry.changeDate | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <p><strong>Modificado por:</strong> {{ entry.changedBy }}</p>
+          <p><strong>Descripción:</strong> {{ entry.changeDescription }}</p>
+          <button class="btn-sm" (click)="revertToVersion(entry.version)">
+            Revertir a esta versión
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals - Outside hasRole directive -->
+
+<!-- Role Modal -->
+<div *ngIf="showRoleModal" class="modal">
+  <div class="modal-content">
+    <h3>{{ editMode ? 'Editar' : 'Nuevo' }} Rol</h3>
+    <form [formGroup]="roleForm" (ngSubmit)="saveRole()">
+      <div class="form-group">
+        <label>Nombre del Rol</label>
+        <input type="text" formControlName="name" placeholder="Ej: Desarrollador">
+      </div>
+      
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea formControlName="description" placeholder="Descripción del rol"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label>Responsabilidades</label>
+        <div formArrayName="responsibilities">
+          <div *ngFor="let resp of responsibilities.controls; let i = index" class="array-item">
+            <input type="text" [formControlName]="i" placeholder="Responsabilidad">
+            <button type="button" class="btn-delete" (click)="removeResponsibility(i)">✕</button>
+          </div>
+        </div>
+        <button type="button" class="btn-secondary" (click)="addResponsibility()">+ Agregar Responsabilidad</button>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary">Guardar</button>
+        <button type="button" class="btn-secondary" (click)="closeRoleModal()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Phase Modal -->
+<div *ngIf="showPhaseModal" class="modal">
+  <div class="modal-content">
+    <h3>{{ editMode ? 'Editar' : 'Nueva' }} Fase</h3>
+    <form [formGroup]="phaseForm" (ngSubmit)="savePhase()">
+      <div class="form-group">
+        <label>Nombre de la Fase</label>
+        <input type="text" formControlName="name" placeholder="Ej: Incepción">
+      </div>
+      
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea formControlName="description" placeholder="Descripción de la fase"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label>Orden</label>
+        <input type="number" formControlName="order" placeholder="1, 2, 3...">
+      </div>
+      
+      <div class="form-group">
+        <label>Objetivos</label>
+        <div formArrayName="objectives">
+          <div *ngFor="let obj of objectives.controls; let i = index" class="array-item">
+            <input type="text" [formControlName]="i" placeholder="Objetivo">
+            <button type="button" class="btn-delete" (click)="removeObjective(i)">✕</button>
+          </div>
+        </div>
+        <button type="button" class="btn-secondary" (click)="addObjective()">+ Agregar Objetivo</button>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary">Guardar</button>
+        <button type="button" class="btn-secondary" (click)="closePhaseModal()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Artifact Type Modal -->
+<div *ngIf="showArtifactModal" class="modal">
+  <div class="modal-content">
+    <h3>{{ editMode ? 'Editar' : 'Nuevo' }} Tipo de Artefacto</h3>
+    <form [formGroup]="artifactTypeForm" (ngSubmit)="saveArtifactType()">
+      <div class="form-group">
+        <label>Nombre del Artefacto</label>
+        <input type="text" formControlName="name" placeholder="Ej: Documento de Visión">
+      </div>
+      
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea formControlName="description" placeholder="Descripción del artefacto"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label>Fase</label>
+        <select formControlName="phase">
+          <option value="">Seleccionar fase</option>
+          <option *ngFor="let phase of selectedConfiguration?.phases" [value]="phase.name">
+            {{ phase.name }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>
+          <input type="checkbox" formControlName="required">
+          ¿Es obligatorio?
+        </label>
+      </div>
+      
+      <div class="form-group">
+        <label>Campos Personalizados</label>
+        <div formArrayName="customFields">
+          <div *ngFor="let field of customFields.controls; let i = index" [formGroupName]="i" class="custom-field-item">
+            <input type="text" formControlName="name" placeholder="Nombre del campo">
+            <select formControlName="type">
+              <option value="text">Texto</option>
+              <option value="textarea">Área de texto</option>
+              <option value="select">Selector</option>
+              <option value="date">Fecha</option>
+            </select>
+            <label>
+              <input type="checkbox" formControlName="required">
+              Requerido
+            </label>
+            <button type="button" class="btn-delete" (click)="removeCustomField(i)">✕</button>
+          </div>
+        </div>
+        <button type="button" class="btn-secondary" (click)="addCustomField()">+ Agregar Campo</button>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary">Guardar</button>
+        <button type="button" class="btn-secondary" (click)="closeArtifactModal()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Workflow Modal -->
+<div *ngIf="showWorkflowModal" class="modal">
+  <div class="modal-content">
+    <h3>{{ editMode ? 'Editar' : 'Nuevo' }} Flujo de Trabajo</h3>
+    <form [formGroup]="workflowForm" (ngSubmit)="saveWorkflow()">
+      <div class="form-group">
+        <label>Nombre del Flujo</label>
+        <input type="text" formControlName="name" placeholder="Ej: Gestión de Requisitos">
+      </div>
+      
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea formControlName="description" placeholder="Descripción del flujo de trabajo"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label>Pasos del Flujo</label>
+        <div formArrayName="steps">
+          <div *ngFor="let step of workflowSteps.controls; let i = index" [formGroupName]="i" class="workflow-step-item">
+            <div class="step-number">Paso {{ i + 1 }}</div>
+            <input type="text" formControlName="name" placeholder="Nombre del paso">
+            <input type="text" formControlName="responsibleRole" placeholder="Rol responsable">
+            <textarea formControlName="description" placeholder="Descripción del paso" rows="2"></textarea>
+            <input type="number" formControlName="order" [value]="i + 1" hidden>
+            <button type="button" class="btn-delete" (click)="removeWorkflowStep(i)">✕</button>
+          </div>
+        </div>
+        <button type="button" class="btn-secondary" (click)="addWorkflowStep()">+ Agregar Paso</button>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary">Guardar</button>
+        <button type="button" class="btn-secondary" (click)="closeWorkflowModal()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="showConfigModal" class="modal" style="display: flex !important; z-index: 10000 !important;">
+  <div class="modal-content" style="background: white; z-index: 10001;">
+    <h3>Nueva Configuración</h3>
+    <form [formGroup]="configForm" (ngSubmit)="saveConfiguration()">
+      <div class="form-group">
+        <label>Nombre de la Configuración</label>
+        <input type="text" formControlName="name" placeholder="Ej: OpenUP Personalizado" required>
+      </div>
+      
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea formControlName="description" placeholder="Descripción de esta configuración" rows="4" required></textarea>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary" [disabled]="configForm.invalid">Crear Configuración</button>
+        <button type="button" class="btn-secondary" (click)="closeConfigModal()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="showApplyModal" class="modal">
+  <div class="modal-content">
+    <h2>Aplicar Configuración a Proyectos</h2>
+    <p>Esta acción aplicará la configuración actual a todos los proyectos existentes.</p>
+    <p><strong>Advertencia:</strong> Esto puede afectar el funcionamiento de proyectos en curso. Se recomienda hacer una copia de seguridad antes de continuar.</p>
+    <div class="modal-actions">
+      <button class="btn-danger" (click)="applyToAllProjects()">Aplicar a Todos</button>
+      <button class="btn-cancel" (click)="closeApplyModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="!selectedConfiguration" class="empty-state">
+  <p>Selecciona una configuración para comenzar</p>
+</div>
+
+<div *ngIf="loading" class="loading-overlay">
+  <div class="spinner"></div>
+  <p>Cargando...</p>
+</div>
